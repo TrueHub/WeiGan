@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <declare-styleable name="BattaryView">
+        <attr name="battaryPercnet" format="integer"/>
+        <attr name="forceColor" format="color"/>
+        <attr name="backgroundColor" format="color"/>
+    </declare-styleable>
+
+</resources>

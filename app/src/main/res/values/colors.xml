@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#4db7ad</color>
+    <color name="colorPrimaryDark">#46aea4</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="textColorPrimary">#fafafa</color>
+    <color name="textColorPrimary_alpha">#77fafafa</color>
+    <color name="heart">#ff8a64</color>
+    <color name="colorGreenLess">#8bc34b</color>
+</resources>

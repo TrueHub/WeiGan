@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".ui.MainActivity"
+    >
+    <item
+        android:id="@+id/navigation_conn"
+        android:icon="@drawable/ic_bluetooth_connected_green_24dp"
+        android:title="连接">
+    </item>
+    <item
+        android:id="@+id/navigation_check_status"
+        android:icon="@drawable/ic_status_24dp"
+        android:title="获取设备状态">
+    </item>
+    <item
+        android:id="@+id/navigation_collect_data"
+        android:icon="@drawable/ic_collect_data_24dp"
+        android:title="收集数据"
+        />
+    <item
+        android:id="@+id/navigation_upload_data"
+        android:icon="@drawable/ic_file_upload_black_24dp"
+        android:title="上传本地缓存数据"
+        />
+    <item
+        android:id="@+id/navigation_clear_flash"
+        android:icon="@drawable/ic_flash_clear24dp"
+        android:title="清除外接设备缓存数据"
+        />
+    <item
+        android:id="@+id/navigation_clear_data"
+        android:icon="@drawable/ic_delete_forever_black_24dp"
+        android:title="清除本地缓存数据"
+        />
+    <item android:title="实时收集数据">
+
+        <menu>
+
+            <group android:checkableBehavior="none">
+
+                <item
+                    android:id="@+id/navigation_realTime_heartRate"
+                    android:icon="@drawable/ic_heart_24dp"
+                    android:title="心率"
+                    app:actionLayout="@layout/switch_item"/>
+                <item
+                    android:id="@+id/navigation_realTime_pressure"
+                    android:icon="@drawable/ic_presser_24dp"
+                    android:title="气压强度"
+                    app:actionLayout="@layout/switch_item"/>
+                <item
+                    android:id="@+id/navigation_realTime_gravA"
+                    android:title="线性加速度"
+                    android:icon="@drawable/ic_grav_24dp"
+                    app:actionLayout="@layout/switch_item"
+                    />
+                <item
+                    android:id="@+id/navigation_realTime_angV"
+                    android:title="角速度"
+                    app:actionLayout="@layout/switch_item"
+                    android:icon="@drawable/ic_ang_24dp"
+                    />
+                <item
+                    android:id="@+id/navigation_realTime_mag"
+                    android:title="地磁强度"
+                    android:icon="@drawable/ic_mag_24dp"
+                    app:actionLayout="@layout/switch_item"
+                    />
+
+            </group>
+        </menu>
+    </item>
+
+    <item android:title="传感器设置"
+        android:id="@+id/navigation_sensor_setting"
+        >
+        <menu>
+            <item
+                android:icon="@drawable/ic_settings_sensor_24dp"
+                android:title="频率"
+                />
+            <item android:title="心率监控·lowerLine"
+                  android:id="@+id/navigation_vib_low"
+                  android:icon="@drawable/ic_vibration_low_24dp"
+                />
+            <item android:title="心率监控·higherLine"
+                  android:id="@+id/navigation_vib_up"
+                  android:icon="@drawable/ic_vibration_low_24dp"
+                />
+        </menu>
+    </item>
+</menu>
