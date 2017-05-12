@@ -1,2 +1,2 @@
 # WeiGan
-BLE蓝牙外接demo
+A demo which commiucate with Bluetooth Lower Electric Device and mobile.
