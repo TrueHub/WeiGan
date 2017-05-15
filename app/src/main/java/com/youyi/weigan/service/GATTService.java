@@ -46,7 +46,7 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class GATTService extends Service {
 
-    public static final String DEVICE_ID = ConstantPool.DEVICEID_2;
+    public static final String DEVICE_ID = ConstantPool.DEVICEID_4;
     private BluetoothAdapter mBluetoothAdapter;
     private LeScanCallback_LOLLIPOP mScanCallBack_lollipop;//5.0以上
     private LeScanCallback_JELLY_BEAN mScanCallBack_jelly;//4.3以上

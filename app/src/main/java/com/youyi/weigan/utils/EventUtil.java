@@ -6,13 +6,13 @@ import org.greenrobot.eventbus.EventBus;
 
 public class EventUtil {
     //注册事件
-    public static void register(Context context) {
+    public static void register(Object context) {
         if (!EventBus.getDefault().isRegistered(context)) {
             EventBus.getDefault().register(context);
         }
     }
     //解除
-    public static void unregister(Context context) {
+    public static void unregister(Object context) {
         if (EventBus.getDefault().isRegistered(context)) {
             EventBus.getDefault().unregister(context);
         }

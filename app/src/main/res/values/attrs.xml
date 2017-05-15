@@ -7,5 +7,14 @@
         <attr name="forceColor" format="color"/>
         <attr name="backgroundColor" format="color"/>
     </declare-styleable>
+    <declare-styleable name="LineView">
+        <attr name="currentColor" format="color"/>
+        <attr name="tolerantColor" format="color"/>
+        <attr name="lineColor" format="color"/>
+        <attr name="lowValue" format="integer"/>
+        <attr name="highValue" format="integer"/>
+        <attr name="currentValue" format="integer"/>
+        <attr name="lineHeight" format="dimension"/>
+    </declare-styleable>
 
 </resources>

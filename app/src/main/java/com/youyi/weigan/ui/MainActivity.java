@@ -30,9 +30,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -131,7 +133,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setActionBar();
 
+
         setNavigationItemClickListener();
+
+        initFragments();
+
+
+
+    }
+
+    private void initFragments() {
+
+        android.support.v4.app.FragmentTransaction transaction =  getSupportFragmentManager().beginTransaction();
+
+        ContentFragment contentFragment = new ContentFragment();
+
+        transaction.add(R.id.frame_content,contentFragment).commit();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
     }
 
@@ -249,6 +272,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         break;
                     case R.id.navigation_realTime_heartRate:
 
+                        Switch sv = (Switch) item.getActionView();
+                        sv.setChecked(!sv.isChecked());
+                        sv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                if (isChecked){
+                                    EventUtil.post("PULSE_UP_ON");
+                                }else{
+                                    EventUtil.post("PULSE_UP_OFF");
+                                }
+                            }
+                        });
                         break;
                     case R.id.navigation_realTime_pressure:
 
@@ -346,9 +381,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //下拉显示的info
         device_info.setVisibility(View.VISIBLE);
         info_tv_battery.setText(deviceElec + "%");
-        info_tv_sensor_freq.setText(simplingFreq);
-        info_tv_vib_low.setText(pulseAbnomal_min);
-        info_tv_vib_high.setText(pulseAbnomal_max);
+        info_tv_sensor_freq.setText(String.valueOf(simplingFreq));
+        info_tv_vib_low.setText(String.valueOf(pulseAbnomal_min));
+        info_tv_vib_high.setText(String.valueOf(pulseAbnomal_max));
         info_tv_chk_time.setText(DateUtils.getDateToString((long) time[0] * 1000));
     }
 

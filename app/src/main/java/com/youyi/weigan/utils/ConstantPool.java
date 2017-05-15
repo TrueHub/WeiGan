@@ -41,6 +41,8 @@ public class ConstantPool {
 
     public static final String DEVICEID_1 = "Nordic-9FBEE5315";
     public static final String DEVICEID_2 = "Nordic-98FD564AC";
+    public static final String DEVICEID_3 = "Nordic-FC0942090";
+    public static final String DEVICEID_4 = "Nordic-BE766AA9B";
 
     public static final String debugWifiName = "linux.utang.cn-puppet";
     public static final String debugWifiMac = "04:bd:70:da:1b:c0";
