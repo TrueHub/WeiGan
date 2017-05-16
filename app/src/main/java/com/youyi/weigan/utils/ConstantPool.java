@@ -1,5 +1,10 @@
 package com.youyi.weigan.utils;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import com.youyi.weigan.R;
+
 /**
  * Created by user on 2017/4/6.
  * 有关设备的常量池
@@ -50,5 +55,6 @@ public class ConstantPool {
 
     public static final String URL_DEBUG_LAN = "http://192.168.0.141:8080/";
     public static final String URL_DEBUG_WLAN = "http://116.236.215.26:8000/";
+
 
 }

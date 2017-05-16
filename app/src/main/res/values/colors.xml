@@ -7,4 +7,5 @@
     <color name="textColorPrimary_alpha">#77fafafa</color>
     <color name="heart">#ff8a64</color>
     <color name="colorGreenLess">#8bc34b</color>
+    <color name="colorGray">#77000000</color>
 </resources>

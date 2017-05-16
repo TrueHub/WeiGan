@@ -46,6 +46,7 @@ import com.youyi.weigan.beans.Mag;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.UserBean;
+import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.moudul.ControlDeviceImp;
 import com.youyi.weigan.service.GATTService;
@@ -76,12 +77,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView tv_deviceId;
     private TextView tv_battery;
     private BattaryView ic_battery;
-
     private TextView info_tv_chk_time;
     private TextView info_tv_sensor_freq;
     private TextView info_tv_battery;
     private TextView info_tv_vib_low;
     private TextView info_tv_vib_high;
+    private LinearLayout device_info;
+
+    private Switch sw_heartRate_real;
 
 
     private ControlDeviceImp controlDeviceImp;
@@ -104,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int LIST_SIZE = 1000;
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private static boolean isWifiState;
-    private LinearLayout device_info;
 
 
     @Override
@@ -112,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        initSwitch();
 
         requestMyPermissions();
 
@@ -137,6 +140,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setNavigationItemClickListener();
 
         initFragments();
+
+
+
+    }
+
+    private void initSwitch() {
+
+        /**
+         * 此处存疑，navigation.get(i) 可能无法直接导航到多层嵌套以下
+         *
+         */
+        for (int i = 0; i < navigationView.getChildCount(); i++) {
+            View view = navigationView.getChildAt(i);
+            switch (view.getId()) {
+                case R.id.navigation_realTime_heartRate:
+                    MenuItem menu = (MenuItem) view;
+                    sw_heartRate_real = (Switch) menu.getActionView();
+                    sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
+                    sw_heartRate_real.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            Log.i("MSL", "onCheckedChanged: " + isChecked);
+                            if (isChecked){
+                                EventUtil.post("PULSE_UP_ON");
+                                EventUtil.post(new Comm2Frags("PULSE_UP_ON", Comm2Frags.Type.FromActivity));
+                            }else{
+                                EventUtil.post("PULSE_UP_OFF");
+                                EventUtil.post(new Comm2Frags("PULSE_UP_OFF", Comm2Frags.Type.FromActivity));
+                            }
+                        }
+                    });
+                    break;
+                case R.id.navigation_realTime_pressure:
+
+                    break;
+                case R.id.navigation_realTime_gravA:
+
+                    break;
+                case R.id.navigation_realTime_angV:
+
+                    break;
+                case R.id.navigation_realTime_mag:
+
+                    break;
+            }
+        }
 
 
 
@@ -202,7 +251,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                Log.i("MSL", "onOptionsItemSelected: home");
                 if (drawerlayout.isDrawerOpen(GravityCompat.START)) {
                     drawerlayout.closeDrawers();
                 } else {
@@ -211,6 +259,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.appbar_screenshot:
                 Log.i("MSL", "onOptionsItemSelected: screenshot ");
+                break;
+            case R.id.appbar_share:
+                Log.i("MSL", "onOptionsItemSelected: share");
                 break;
         }
 
@@ -271,19 +322,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         break;
                     case R.id.navigation_realTime_heartRate:
+                        sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
 
-                        Switch sv = (Switch) item.getActionView();
-                        sv.setChecked(!sv.isChecked());
-                        sv.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                if (isChecked){
-                                    EventUtil.post("PULSE_UP_ON");
-                                }else{
-                                    EventUtil.post("PULSE_UP_OFF");
-                                }
-                            }
-                        });
                         break;
                     case R.id.navigation_realTime_pressure:
 

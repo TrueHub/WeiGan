@@ -1,132 +1,169 @@
-<FrameLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:scrollbars="none"
     tools:context="com.youyi.weigan.ui.ContentFragment">
-    <ScrollView
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="none">
-        <LinearLayout
+        android:orientation="vertical"
+        android:padding="10dp"
+        >
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/card_heartRate"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="10dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#f0f0f0"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp"
+            app:cardMaxElevation="7dp"
             >
-            <android.support.v7.widget.CardView
-                android:id="@+id/card_heartRate"
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                app:cardBackgroundColor="#f0f0f0"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="2dp"
-                app:cardMaxElevation="7dp"
-                >
+                android:orientation="vertical">
+
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:id="@+id/ll_heartRate"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-                    <LinearLayout
-                        android:id="@+id/ll_heartRate"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal"
+                    android:weightSum="1">
+
+                    <TextView
+                        android:id="@+id/tv_heartRate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_margin="10dp"
-                        android:orientation="horizontal"
-                        android:weightSum="1">
-                        <TextView
-                            android:id="@+id/tv_heartRate"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:drawableStart="@mipmap/heartrate"
-                            android:text="--"
-                            android:textColor="@color/heart"
-                            android:textSize="35sp"/>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
-                            android:text="次/分"
-                            android:textColor="@color/heart"
-                            />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="可信度："
-                            android:textColor="@color/heart"
-                            android:layout_marginStart="10dp"
-                            />
-                        <ImageView
-                            android:id="@+id/iv_instructLevel"
-                            android:background="@drawable/ic_instruct_1_24dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:baselineAlignBottom="true"
-                            />
-                    </LinearLayout>
-                    <com.youyi.weigan.view.LineView
-                        android:layout_margin="10dp"
-                        android:id="@+id/lineView_heartRate"
-                        android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_gravity="bottom"
-                        app:currentColor="#000"
-                        app:currentValue="0"
-                        app:highValue="120"
-                        app:lineColor="#b0d7d3d3"
-                        app:lineHeight="10dp"
-                        app:lowValue="50"
-                        app:tolerantColor="@color/colorPrimary"
+                        android:drawableStart="@mipmap/heartrate"
+                        android:text="@string/none"
+                        android:textColor="@color/heart"
+                        android:textSize="35sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="次/分"
+                        android:textColor="@color/heart"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="可信度："
+                        android:textColor="@color/heart"
+                        />
+
+                    <ImageView
+                        android:id="@+id/iv_instructLevel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/ic_instruct_1_24dp"
+                        android:baselineAlignBottom="true"
                         />
                 </LinearLayout>
-            </android.support.v7.widget.CardView>
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="10dp"
-                app:cardBackgroundColor="#f0f0f0"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="2dp"
-                app:cardMaxElevation="7dp"
-                >
 
-            </android.support.v7.widget.CardView>
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="10dp"
-                app:cardBackgroundColor="#f0f0f0"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="2dp"
-                app:cardMaxElevation="7dp"
-                >
+                <com.youyi.weigan.view.LineView
+                    android:id="@+id/lineView_heartRate"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_gravity="bottom"
+                    android:layout_margin="10dp"
+                    app:currentColor="#000"
+                    app:currentValue="0"
+                    app:highValue="120"
+                    app:lineColor="#b0d7d3d3"
+                    app:lineHeight="10dp"
+                    app:lowValue="50"
+                    app:tolerantColor="@color/colorPrimary"
+                    />
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
 
-            </android.support.v7.widget.CardView>
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="10dp"
-                app:cardBackgroundColor="#f0f0f0"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="2dp"
-                app:cardMaxElevation="7dp"
-                >
+        <android.support.v7.widget.CardView
+            android:id="@+id/card_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#f0f0f0"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp"
+            app:cardMaxElevation="7dp"
+            >
 
-            </android.support.v7.widget.CardView>
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginBottom="10dp"
-                app:cardBackgroundColor="#f0f0f0"
-                app:cardCornerRadius="5dp"
-                app:cardElevation="2dp"
-                app:cardMaxElevation="7dp"
-                >
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-            </android.support.v7.widget.CardView>
-        </LinearLayout>
-    </ScrollView>
-</FrameLayout>
+                <com.youyi.weigan.view.ImgWheelView
+                    android:id="@+id/imgWheelView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="10dp"
+                    app:checkedColor="@color/colorGreenLess"
+                    app:unCheckedColor="@color/colorGray"/>
+
+                <TextView
+                    android:layout_margin="10dp"
+                    android:id="@+id/tv_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/none"
+                    android:textColor="@color/colorGreenLess"
+                    android:layout_gravity="center_vertical"
+                    android:textSize="35sp"/>
+
+
+            </LinearLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#f0f0f0"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp"
+            app:cardMaxElevation="7dp"
+            >
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#f0f0f0"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp"
+            app:cardMaxElevation="7dp"
+            >
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginBottom="10dp"
+            app:cardBackgroundColor="#f0f0f0"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="2dp"
+            app:cardMaxElevation="7dp"
+            >
+
+        </android.support.v7.widget.CardView>
+    </LinearLayout>
+</ScrollView>

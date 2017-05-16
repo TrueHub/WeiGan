@@ -1,14 +1,9 @@
 <resources>
     <string name="app_name">WeiGan</string>
-    <string name="device_not_connected">device not connected.</string>
+    <string name="device_not_connected">device not connected</string>
     <string name="_20">20%</string>
-    <string name="title_activity_main2">Main2Activity</string>
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
     <string name="action_settings">Settings</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="none">--</string>
 </resources>

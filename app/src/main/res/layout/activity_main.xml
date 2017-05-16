@@ -20,19 +20,21 @@
             android:id="@+id/appbar"
             android:layout_width="match_parent"
             android:layout_height="200dp"
+            app:expanded="false"
             >
 
             <!--提供了一个可以折叠的Toolbar 布局属性:FrameLayout-->
             <android.support.design.widget.CollapsingToolbarLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:contentScrim="?attr/colorPrimary"
                 android:minHeight="?android:attr/actionBarSize"
+                app:contentScrim="?attr/colorPrimary"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlwaysCollapsed">
 
-                <include layout="@layout/device_info"
+                <include
                     android:id="@+id/device_info"
-                         android:visibility="gone"
+                    layout="@layout/device_info"
+                    android:visibility="gone"
                     />
 
                 <android.support.v7.widget.Toolbar
@@ -43,31 +45,33 @@
                     app:layout_collapseMode="pin"
                     app:title="   "
                     >
+
                     <TextView
                         android:id="@+id/tv_deviceId_toolbar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/textColorPrimary"
                         android:text="@string/device_not_connected"
+                        android:textColor="@color/textColorPrimary"
                         />
 
                     <com.youyi.weigan.view.BattaryView
-                        android:visibility="gone"
-                        android:layout_marginStart="30dp"
                         android:id="@+id/ic_battery_toolbar"
                         android:layout_width="10dp"
                         android:layout_height="18dp"
+                        android:layout_marginStart="30dp"
+                        android:visibility="gone"
                         app:backgroundColor="@color/textColorPrimary_alpha"
                         app:battaryPercnet="40"
                         app:forceColor="@color/textColorPrimary"/>
+
                     <TextView
-                        android:visibility="gone"
                         android:id="@+id/tv_battery_toolbar"
-                        android:layout_marginStart="5dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
                         android:text="40%"
                         android:textColor="@color/textColorPrimary"
+                        android:visibility="gone"
                         />
 
                 </android.support.v7.widget.Toolbar>
@@ -90,9 +94,9 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:scrollbars="none"
         app:headerLayout="@layout/navigation_header"
         app:menu="@menu/instruc_menu"
-        android:scrollbars="none"
         >
 
     </android.support.design.widget.NavigationView>

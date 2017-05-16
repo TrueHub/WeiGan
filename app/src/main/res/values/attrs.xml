@@ -16,5 +16,9 @@
         <attr name="currentValue" format="integer"/>
         <attr name="lineHeight" format="dimension"/>
     </declare-styleable>
+    <declare-styleable name="ImgWheelView">
+        <attr name="checkedColor" format="color"/>
+        <attr name="unCheckedColor" format="color"/>
+    </declare-styleable>
 
 </resources>
