@@ -90,7 +90,7 @@ public class BattaryView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        round = getHeight() / 40f;//把圆角写死，省去使用时计算
+        round = getHeight() / 30f;//把圆角写死，省去使用时计算
         mPaint.setStyle(Paint.Style.FILL);//填充模式
         //电池区域的高，宽
         int imgH = getHeight() - getPaddingTop() - getPaddingBottom();
