@@ -14,7 +14,7 @@
         android:layout_centerInParent="true"
         android:background="@drawable/circle"
         android:gravity="center"
-        android:text="Device not connected"
+        android:text="@string/device_not_connected"
         android:textColor="@color/textColorPrimary"
         android:textSize="15sp"
         android:textStyle="bold"

@@ -15,8 +15,10 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.design.internal.NavigationMenuView;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -47,6 +49,7 @@ import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
+import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.moudul.ControlDeviceImp;
 import com.youyi.weigan.service.GATTService;
@@ -65,6 +68,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 
 import static android.view.View.GONE;
+import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
+import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_ON;
+import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.SEARCH_DEVICE_STATUE;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -84,8 +90,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView info_tv_vib_high;
     private LinearLayout device_info;
 
+    //侧滑菜单中的头部
+    private TextView nvg_header_deviceId;
+    //侧滑菜单中的各个按钮
+    private MenuItem nvg_conn;
+    private MenuItem nvg_chk_status;
+    private MenuItem nvg_collect_data;
+    private MenuItem nvg_upload_data;
+    private MenuItem nvg_clear_flash;
+    private MenuItem nvg_del_cache;
+    //侧滑菜单中的real data 组中的switch
     private Switch sw_heartRate_real;
-
 
     private ControlDeviceImp controlDeviceImp;
 
@@ -107,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int LIST_SIZE = 1000;
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private static boolean isWifiState;
+    private CollapsingToolbarLayout collapsingToolbarLayout;
 
 
     @Override
@@ -114,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-        initSwitch();
+        initNavigationItem();
 
         requestMyPermissions();
 
@@ -142,62 +158,111 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initFragments();
 
 
-
     }
 
-    private void initSwitch() {
+    /**
+     * 初始画navigation中的各个可点击的item，层级比较多
+     */
+    private void initNavigationItem() {
 
-        /**
-         * 此处存疑，navigation.get(i) 可能无法直接导航到多层嵌套以下
-         *
-         */
-        for (int i = 0; i < navigationView.getChildCount(); i++) {
-            View view = navigationView.getChildAt(i);
-            switch (view.getId()) {
-                case R.id.navigation_realTime_heartRate:
-                    MenuItem menu = (MenuItem) view;
-                    sw_heartRate_real = (Switch) menu.getActionView();
-                    sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
-                    sw_heartRate_real.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            Log.i("MSL", "onCheckedChanged: " + isChecked);
-                            if (isChecked){
-                                EventUtil.post("PULSE_UP_ON");
-                                EventUtil.post(new Comm2Frags("PULSE_UP_ON", Comm2Frags.Type.FromActivity));
-                            }else{
-                                EventUtil.post("PULSE_UP_OFF");
-                                EventUtil.post(new Comm2Frags("PULSE_UP_OFF", Comm2Frags.Type.FromActivity));
-                            }
+        for (int i = 0; i < navigationView.getMenu().size(); i++) {
+            MenuItem root1 = navigationView.getMenu().getItem(i);//第一层级的item
+            switch (root1.getItemId()) {//
+                //conn按钮
+                case R.id.navigation_conn:
+                    nvg_conn = root1;
+                    break;
+                //获取设备状态
+                case R.id.navigation_check_status:
+                    nvg_chk_status = root1;
+                    break;
+                //收集数据
+                case R.id.navigation_collect_data:
+                    nvg_collect_data = root1;
+                    break;
+                //上传本地数据
+                case R.id.navigation_upload_data:
+                    nvg_upload_data = root1;
+                    break;
+                //清除外接设备的缓存数据
+                case R.id.navigation_clear_flash:
+                    nvg_clear_flash = root1;
+                    break;
+                //删除本地缓存数据
+                case R.id.navigation_clear_data:
+                    nvg_del_cache = root1;
+                    break;
+
+                //real这一组
+                case R.id.navigation_real_group:
+                    Log.i("MSL", "initNavigationItem: " + root1.getSubMenu().size());
+                    //遍历real group 的item下的menu item。。。
+                    for (int j = 0; j < root1.getSubMenu().size(); j++) {
+                        MenuItem v = root1.getSubMenu().getItem(j);
+                        //还是根据id判断
+                        switch (v.getItemId()) {
+                            case R.id.navigation_realTime_heartRate:
+                                sw_heartRate_real = (Switch) v.getActionView().findViewById(R.id._switch);
+                                sw_heartRate_real.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                    @Override
+                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                        Log.i("MSL", "onCheckedChanged: " + isChecked);
+                                        if (isChecked) {
+                                            EventUtil.post(REAL_PULSE_ON);
+                                            EventUtil.post(new Comm2Frags("PULSE_UP_ON", Comm2Frags.Type.FromActivity));
+                                        } else {
+                                            EventUtil.post(REAL_PULSE_OFF);
+                                            EventUtil.post(new Comm2Frags("PULSE_UP_OFF", Comm2Frags.Type.FromActivity));
+                                        }
+                                    }
+                                });
+                                break;
+                            case R.id.navigation_realTime_pressure:
+
+                                break;
+                            case R.id.navigation_realTime_gravA:
+
+                                break;
+                            case R.id.navigation_realTime_angV:
+
+                                break;
+                            case R.id.navigation_realTime_mag:
+
+                                break;
                         }
-                    });
+                    }
                     break;
-                case R.id.navigation_realTime_pressure:
+                //传感器设置一组
+                case R.id.navigation_sensor_setting:
+                    for (int j = 0; j < root1.getSubMenu().size(); j++) {
+                        MenuItem v = root1.getSubMenu().getItem(j);
+                        switch (v.getItemId()) {
+                            case R.id.navigation_sensor_freq:
 
-                    break;
-                case R.id.navigation_realTime_gravA:
+                                break;
+                            case R.id.navigation_vib_low:
 
-                    break;
-                case R.id.navigation_realTime_angV:
+                                break;
+                            case R.id.navigation_vib_up:
 
-                    break;
-                case R.id.navigation_realTime_mag:
-
+                                break;
+                        }
+                    }
                     break;
             }
-        }
 
+        }
 
 
     }
 
     private void initFragments() {
 
-        android.support.v4.app.FragmentTransaction transaction =  getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         ContentFragment contentFragment = new ContentFragment();
 
-        transaction.add(R.id.frame_content,contentFragment).commit();
+        transaction.add(R.id.frame_content, contentFragment).commit();
 
     }
 
@@ -275,13 +340,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public boolean onNavigationItemSelected(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.navigation_conn:
+
                         String title = (String) (item.getTitle());
                         Log.d("MSL", "onNavigationItemSelected: conn");
                         requestMyPermissions();
 
                         if (title.equals("连接")) {
                             if (ServiceUtils.isServiceWork(MainActivity.this, "com.youyi.weigan.service.GATTService")) {
-                                EventUtil.post("START CONNECT");
+                                EventUtil.post(Comm2GATT.TYPE.START_CONNECT);
                                 Log.e("MSL", "onClick: gatt service is running");
                             } else {
                                 gattService = new Intent(MainActivity.this, GATTService.class);
@@ -291,11 +357,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             startWriteService();
 
                         } else if (title.equals("断开")) {
-                            EventUtil.post("STOP GATT_SERVICE");
+                            EventUtil.post(Comm2GATT.TYPE.STOP_GATT_SERVICE);
                         }
                         break;
                     case R.id.navigation_check_status:
-                        EventUtil.post("SEARCH_DEVICE_STATUE");
+                        EventUtil.post(SEARCH_DEVICE_STATUE);
                         break;
                     case R.id.navigation_collect_data:
                         Log.d("MSL", "onClick: 网络是否wifi状态：" + isWifiState);
@@ -304,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         getDataEnd = false;
 
-                        EventUtil.post("SEARCH_HIS");
+                        EventUtil.post(Comm2GATT.TYPE.SEARCH_HIS);
                         break;
                     case R.id.navigation_upload_data:
 
@@ -314,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                EventUtil.post("DELETE FLASH");
+                                EventUtil.post(Comm2GATT.TYPE.CLEAR_FLASH);
                             }
                         });
                         break;
@@ -381,6 +447,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         info_tv_vib_low = (TextView) device_info.findViewById(R.id.tv_vib_low_info);
         info_tv_vib_high = (TextView) device_info.findViewById(R.id.tv_vib_high_info);
         info_tv_sensor_freq = (TextView) device_info.findViewById(R.id.sensor_freq_info);
+        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayout);
+        collapsingToolbarLayout.setOnClickListener(this);
     }
 
     @Override
@@ -388,6 +456,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
         }
     }
+
+    /**
+     * _______________________________________↓↓↓↓EventBus↓↓↓↓_________________________________________________________
+     */
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getGATTCallback(String str) {
@@ -420,6 +492,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //下拉显示的info
         device_info.setVisibility(View.VISIBLE);
+        collapsingToolbarLayout.setScrimsShown(true);
         info_tv_battery.setText(deviceElec + "%");
         info_tv_sensor_freq.setText(String.valueOf(simplingFreq));
         info_tv_vib_low.setText(String.valueOf(pulseAbnomal_min));
@@ -427,6 +500,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         info_tv_chk_time.setText(DateUtils.getDateToString((long) time[0] * 1000));
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getDataOver(EventNotification eventNotification) {
+        switch (eventNotification.getType()) {
+            case "HIS_DATA":
+                getDataEnd = eventNotification.isGetOver();
+                break;
+            case GATTService.DEVICE_ID:
+                if (eventNotification.isGetOver()) {
+                    controlDeviceImp.showToast("连接" + eventNotification.getType() + "成功");
+                    tv_deviceId.setText(eventNotification.getType());
+
+                    //侧滑菜单的header中
+                    RelativeLayout relativeLayout = (RelativeLayout) navigationView.getHeaderView(0);
+                    nvg_header_deviceId = (TextView) relativeLayout.findViewById(R.id.header_connect_status);
+                    nvg_header_deviceId.setText(eventNotification.getType());
+                    nvg_conn.setTitle(R.string.disConn);
+
+                    EventUtil.post(SEARCH_DEVICE_STATUE);
+
+                    if (sw_heartRate_real.isChecked()) {
+                        EventUtil.post(REAL_PULSE_ON);
+                    } else {
+                        EventUtil.post(REAL_PULSE_OFF);
+                    }
+
+                } else {
+                    initAll();
+                }
+                break;
+            case "NET STATE":
+                startWriteService();
+                break;
+        }
+
+    }
+
+/**_______________________________________↑↑↑↑EventBus↑↑↑↑_________________________________________________________*/
 
     /**
      * 显示Toolbar
@@ -483,37 +593,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         win.setAttributes(winParams);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void getDataOver(EventNotification eventNotification) {
-        switch (eventNotification.getType()) {
-            case "HIS_DATA":
-                getDataEnd = eventNotification.isGetOver();
-                break;
-            case GATTService.DEVICE_ID:
-                if (eventNotification.isGetOver()) {
-                    controlDeviceImp.showToast("连接" + eventNotification.getType() + "成功");
-                    tv_deviceId.setText(eventNotification.getType());
-
-                    //侧滑菜单的header中
-                    RelativeLayout relativeLayout = (RelativeLayout) navigationView.getHeaderView(0);
-                    TextView tv = (TextView) relativeLayout.findViewById(R.id.header_connect_status);
-                    tv.setText(eventNotification.getType());
-                }else {
-                    initAll();
-                }
-                break;
-            case "NET STATE":
-                startWriteService();
-                break;
-        }
-
-    }
-
     private void initAll() {
         tv_battery.setVisibility(GONE);
         ic_battery.setVisibility(GONE);
         tv_deviceId.setText(getResources().getString(R.string.device_not_connected));
         device_info.setVisibility(GONE);
+        nvg_conn.setTitle(R.string.connect);
+        nvg_header_deviceId.setText(R.string.device_not_connected);
+
     }
 
     private void requestMyPermissions() {

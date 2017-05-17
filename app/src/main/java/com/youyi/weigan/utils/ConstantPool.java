@@ -29,7 +29,7 @@ public class ConstantPool {
     public static final byte INSTRUCT_SEARCH_PRESSURE = (byte)0x07;
     public static final byte INSTRUCT_DELETE_FLASH = (byte)0xFE;
 
-    public static final byte[] SEARCH_DEVICE_TIME = new byte[]
+    public static final byte[] SEARCH_DEVICE_STATUES = new byte[]
             {HEAD,(byte)0x02, INSTRUCT_SEARCH_TIME, END};//查询设备时间
 
     public static final byte[] PULSE_UP_ON = new byte[]

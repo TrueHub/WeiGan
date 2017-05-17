@@ -11,6 +11,17 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+
+        <item name="android:windowContentTransitions">true</item>
+
+        <!-- 指定进入和退出transitions -->
+        <item name="android:windowEnterTransition">@transition/slide</item>
+        <item name="android:windowExitTransition">@transition/slide</item>
+    </style>
+
+    <style name="AppSplash" parent="AppTheme">
+        <item name="android:windowBackground">@color/colorPrimary</item>
     </style>
 
 

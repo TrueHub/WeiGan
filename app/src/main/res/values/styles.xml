@@ -1,5 +1,4 @@
 <resources>
-
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
 
@@ -11,5 +10,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-
+    <style name="AppSplash" parent="AppTheme">
+        <item name="android:windowBackground">@color/colorPrimary</item>
+    </style>
 </resources>

@@ -29,6 +29,7 @@ import com.youyi.weigan.beans.Mag;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.PulseBean;
+import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.thread.CommandPool;
 import com.youyi.weigan.utils.ConstantPool;
@@ -190,7 +191,6 @@ public class GATTService extends Service {
                 //连上了新设备
                 commandPool = new CommandPool(GATTService.this, gatt);
                 new Thread(commandPool).start();
-                EventUtil.post(new EventNotification(DEVICE_ID, true));
                 Log.i("MSL", "Connected to GATT server 连接成功");
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 //设备断开
@@ -232,6 +232,7 @@ public class GATTService extends Service {
                         }
                         if (characteristic.getUuid().equals(ConstantPool.UUID_WRITE)) {
                             vibrationChar = characteristic;
+                            EventUtil.post(new EventNotification(DEVICE_ID, true));
                         }
                     }
                 }
@@ -291,34 +292,34 @@ public class GATTService extends Service {
         }
     }
 
-    //MainActivity的btn控制这里
+    /**________↓↓_______MainActivity的btn控制这里_____________↓↓↓↓_eventBus_↓↓↓↓↓___________________________________________________*/
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void btnClick(String command) {
-        switch (command) {
-            case "SEARCH_DEVICE_STATUE":
-                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_TIME, vibrationChar);
+    public void btnClick(Comm2GATT.TYPE type) {
+        if (vibrationChar == null) return;
+        switch (type) {
+            case SEARCH_DEVICE_STATUE:
+                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
                 break;
-            case "PULSE_UP_ON":
+            case REAL_PULSE_ON:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.PULSE_UP_ON, vibrationChar);
                 break;
-            case "PULSE_UP_OFF":
+            case REAL_PULSE_OFF:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.PULSE_UP_OFF, vibrationChar);
                 break;
-            case "SEARCH_HIS":
+            case SEARCH_HIS:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_HIS, vibrationChar);
                 cameCount = 0;
                 break;
-            case "START CONNECT":
+            case START_CONNECT:
                 searchDevice();
                 break;
-            case "STOP GATT_SERVICE":
+            case STOP_GATT_SERVICE:
                 EventUtil.post("断开GATT连接");
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
                 Log.i("MSL", "Disconnected from GATT server");
                 mGatt.disconnect();
-
                 break;
-            case "DELETE FLASH":
+            case CLEAR_FLASH:
                 Log.i("MSL", "指令：清除设备的flash缓存");
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.DELETE_FLASH, vibrationChar);
                 EventUtil.post(new EventNotification("HIS_DATA", true));
@@ -336,7 +337,7 @@ public class GATTService extends Service {
 */
         if (data[1] == ConstantPool.INSTRUCT_SET_TIME) {//返回：设定时间成功
             EventUtil.post("SET_TIME_SUCCESS!");
-            commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_TIME, vibrationChar);
+            commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
 
         } else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE) {//返回：查询心率
             EventUtil.post(new PulseBean(DataUtils.byte2Int(data[3]), DataUtils.byte2Int(data[4])));
@@ -377,7 +378,7 @@ public class GATTService extends Service {
                     deviceStatusBean.setDeviceElec(datas[2]);
                     EventUtil.post(deviceStatusBean);
                     if (!needSetTime(timeInt)) {
-                        EventUtil.post("设备时间校对一致");
+                        EventUtil.post("设备与本地时间无误差");
                     } else {
                         Log.i("MSL", "readData: set time");
                         writeTime();

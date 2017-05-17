@@ -55,6 +55,7 @@ public class BattaryView extends View {
                     break;
             }
         }
+        typedArray.recycle();
         mPaint = new Paint();
         mPaint.setColor(forceColor);
         mPaint.setAntiAlias(true);

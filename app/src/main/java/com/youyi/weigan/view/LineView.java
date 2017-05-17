@@ -68,7 +68,7 @@ public class LineView extends View {
                     break;
             }
         }
-
+        typedArray.recycle();
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
 

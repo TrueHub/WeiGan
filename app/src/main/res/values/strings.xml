@@ -1,9 +1,22 @@
 <resources>
     <string name="app_name">WeiGan</string>
-    <string name="device_not_connected">device not connected</string>
-    <string name="_20">20%</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_settings">Settings</string>
+    <string name="device_not_connected">Device not connected</string>
     <string name="none">--</string>
+    <string name="connect">连接</string>
+    <string name="disConn">断开</string>
+    <string name="getStatus">获取设备状态</string>
+    <string name="getData">收集数据</string>
+    <string name="uploadIntoSvl">上传本地缓存数据</string>
+    <string name="clearFlash">清除外接设备缓存数据</string>
+    <string name="clearLocalCache">清除本地缓存数据</string>
+    <string name="real_group">实时收集数据</string>
+    <string name="heartRate">心率</string>
+    <string name="pressure">气压强度</string>
+    <string name="graV">重力加速度</string>
+    <string name="angV">角速度</string>
+    <string name="mag">地磁强度</string>
+    <string name="sensorSetting">传感器设置</string>
+    <string name="lowerline">心率监控·lowerLine</string>
+    <string name="sensor_freq">九轴传感器频率</string>
+    <string name="higherline">心率监控·higherLine</string>
 </resources>

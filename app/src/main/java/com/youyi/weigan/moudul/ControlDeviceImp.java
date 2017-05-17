@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * Created by user on 2017/4/5.
  */
 public class ControlDeviceImp {
-//    private final Intent intentResult;
+    //    private final Intent intentResult;
     private Context context;
     private Toast toast;
 
@@ -58,12 +58,17 @@ public class ControlDeviceImp {
         context.startActivity(intentResult);
     }*/
 
+
     public void showToast(String str) {
         if (toast.getView().getParent() != null) {
             toast.cancel();
         }
+        if (toast.getView().getParent() != null &&
+                str.equals(toast.getView().getContentDescription()))
+            return;
         toast = Toast.makeText(context, str, Toast.LENGTH_SHORT);
         toast.show();
+
     }
 
 }
