@@ -136,11 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final int SIZE_2 = 5 ;
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private static boolean isWifiState;
-
-    private SensorFreq sensorFreq;
-
-
-
+    private SensorFreq sensorFreq;//带有传感器频率设置的bean类
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -656,7 +652,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 显示Toolbar
-     *
      * @param show true:显示,false:隐藏
      */
     public void showToolbar(boolean show) {
@@ -759,16 +754,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {}
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-
-    }
+    public void onStopTrackingTouch(SeekBar seekBar) {}
     /******************************seekBar的listener事件******************************************** */
 
     private class NetWorkStateChangedReceiver extends BroadcastReceiver {
@@ -853,21 +843,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        tvMsg.setTextSize(TypedValue.COMPLEX_UNIT_SP , 10);
     }
 
+    //Navigation Menu中 Sensor Setting 点击后的dialog界面
     private void showDialogForSeekBar(Activity activity){
         sensorFreq = new SensorFreq();
-
         LinearLayout ll = (LinearLayout) getLayoutInflater().inflate
                 (R.layout.sensor_setting,(ViewGroup) findViewById(R.id.sensor_setting_ll));
-
         sb_grav = (SeekBar)ll.findViewById(R.id.ss_seek_grav);
         sb_ang = (SeekBar)ll.findViewById(R.id.ss_seek_ang);
         sb_mag = (SeekBar)ll.findViewById(R.id.ss_seek_mag);
         sb_pressure = (SeekBar)ll.findViewById(R.id.ss_seek_pressure);
 
-
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle("设定采样频率")
-                .setMessage(" ")
+                .setMessage("可选范围： 1HZ ~ 0.1HZ")
                 .setIcon(R.drawable.ic_settings_sensor_24dp)
                 .setView(ll)
                 .setPositiveButton("ok", new DialogInterface.OnClickListener() {
@@ -883,10 +871,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setNegativeButton("cancel", null)
                 .create();
         dialog.show();
-
         sb_grav.setOnSeekBarChangeListener(this);
-
-
+        sb_ang.setOnSeekBarChangeListener(this);
+        sb_mag.setOnSeekBarChangeListener(this);
+        sb_pressure.setOnSeekBarChangeListener(this);
 
     }
 }

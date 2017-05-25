@@ -28,6 +28,7 @@ import com.youyi.weigan.beans.GravA;
 import com.youyi.weigan.beans.Mag;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
+import com.youyi.weigan.beans.SensorFreq;
 import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.thread.CommandPool;
@@ -299,6 +300,12 @@ public class GATTService extends Service {
             case SEARCH_DEVICE_STATUE:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
                 break;
+            case REAL_DATA_ON:
+                commandPool.addCommand(CommandPool.Type.write, ConstantPool.REAL_SENSOR_DATA_ON, vibrationChar);
+                break;
+            case REAL_DATA_OFF:
+                commandPool.addCommand(CommandPool.Type.write, ConstantPool.REAL_SENSOR_DATA_OFF, vibrationChar);
+                break;
             case REAL_PULSE_ON:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.PULSE_UP_ON, vibrationChar);
                 break;
@@ -307,7 +314,6 @@ public class GATTService extends Service {
                 break;
             case SEARCH_HIS:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_HIS, vibrationChar);
-                cameCount = 0;
                 break;
             case START_CONNECT:
                 searchDevice();
@@ -326,6 +332,19 @@ public class GATTService extends Service {
         }
     }
 
+    /** 设置传感器的频率*/
+    public void sensorSetting(SensorFreq sensorFreq){
+        byte[] freq = ConstantPool.SET_SENSOR_FREQ;
+        freq[3] = DataUtils.int2OneByte(sensorFreq.getGravFreq());
+        freq[4] = DataUtils.int2OneByte(sensorFreq.getAngFreq());
+        freq[5] = DataUtils.int2OneByte(sensorFreq.getMagFreq());
+        freq[6] = DataUtils.int2OneByte(sensorFreq.getPressureFreq());
+        commandPool.addCommand(CommandPool.Type.write,freq,vibrationChar);
+
+    }
+
+    /** _________________________________________________________________________________________________________*/
+
     public void readData(byte[] data) throws NullPointerException {
         if (data[2] == ConstantPool.INSTRUCT_SET_TIME) {//返回：设定时间成功
             if (data[3] == (byte)0x01) {
@@ -334,8 +353,6 @@ public class GATTService extends Service {
             }
         } else if (data[2] == ConstantPool.INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte)0x06){
             //返回各传感器的采样频率
-
-
 
         }else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE && data[1] == (byte)0x01) {
             EventUtil.post("开关实时心率成功");
@@ -347,17 +364,6 @@ public class GATTService extends Service {
             System.arraycopy(data, 3, timeBytes, 0, timeBytes.length);
             int timeInt = DataUtils.bytes2IntUnsigned(timeBytes);//这里的timeInt是100ms级别的
 //            Log.i("MSL", "readData: " + timeInt +","+ System.currentTimeMillis() / 10);
-
-            /*if (cameCount != -1) {
-                if (getDataEnd(timeInt) && data[2] != ConstantPool.INSTRUCT_SEARCH_TIME) {//接收完截至到当前的数据
-                    cameCount++;
-                    Log.d("MSL", "readData: " + cameCount);
-                    if (cameCount == 5) {
-                        commandPool.addCommand(CommandPool.Type.write, ConstantPool.DELETE_FLASH, vibrationChar);
-                        EventUtil.post(new EventNotification("HIS_DATA", true));
-                    }
-                }
-            }*/
 
             byte[] datas = null;//除去数据长度、指令、时间 之后的数组
             if (length > 5) {

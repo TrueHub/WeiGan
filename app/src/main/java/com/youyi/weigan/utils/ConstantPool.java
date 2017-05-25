@@ -45,7 +45,7 @@ public class ConstantPool {
     public static final byte[] REAL_SENSOR_DATA_ON = new byte[]{HEAD,
             (byte)0x03,INSTRUCT_REAL_SENSOR_DATA ,(byte) 0x01,END};//
     /** 实时数据上传   关*/
-    public static final byte[] REALSENSOR_DATA_OFF = new byte[]{HEAD,
+    public static final byte[] REAL_SENSOR_DATA_OFF = new byte[]{HEAD,
             (byte)0x03,INSTRUCT_REAL_SENSOR_DATA,(byte)0x00,END};//关闭实时数据上传
 
     /** 实时心率上传   开*/
