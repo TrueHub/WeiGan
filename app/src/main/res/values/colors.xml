@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#4db7ad</color>
     <color name="colorPrimaryDark">#46aea4</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#e7b331</color>
     <color name="textColorPrimary">#fafafa</color>
     <color name="textColorPrimary_alpha">#77fafafa</color>
     <color name="heart">#ff8a64</color>

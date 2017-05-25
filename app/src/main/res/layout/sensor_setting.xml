@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:id="@+id/sensor_setting_ll"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:gravity="center_vertical"
+    >
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重力加速度"
+            />
+
+        <com.youyi.weigan.view.MySeekBar
+            android:id="@+id/ss_seek_grav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:max="90"
+            android:maxHeight="10dp"
+            android:progress="10"
+            android:progressDrawable="@drawable/seekbar_style"
+            android:splitTrack="false"
+            android:thumb="@mipmap/ic_thumb"
+            app:img="@mipmap/chat"
+            app:textColor="@color/textColorPrimary"
+            app:textSize="15sp"
+            />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="角速度"
+        />
+
+    <com.youyi.weigan.view.MySeekBar
+        android:id="@+id/ss_seek_ang"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:max="90"
+        android:maxHeight="10dp"
+        android:progress="10"
+        android:progressDrawable="@drawable/seekbar_style"
+        android:splitTrack="false"
+        android:thumb="@mipmap/ic_thumb"
+        app:img="@mipmap/chat"
+        app:textColor="@color/textColorPrimary"
+        app:textSize="15sp"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="地磁"
+        />
+
+    <com.youyi.weigan.view.MySeekBar
+        android:id="@+id/ss_seek_mag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:max="90"
+        android:maxHeight="10dp"
+        android:progress="10"
+        android:progressDrawable="@drawable/seekbar_style"
+        android:splitTrack="false"
+        android:thumb="@mipmap/ic_thumb"
+        app:img="@mipmap/chat"
+        app:textColor="@color/textColorPrimary"
+        app:textSize="15sp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="气压强度"
+        />
+
+    <com.youyi.weigan.view.MySeekBar
+        android:id="@+id/ss_seek_pressure"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:max="90"
+        android:maxHeight="10dp"
+        android:progress="10"
+        android:progressDrawable="@drawable/seekbar_style"
+        android:splitTrack="false"
+        android:thumb="@mipmap/ic_thumb"
+        app:img="@mipmap/chat"
+        app:textColor="@color/textColorPrimary"
+        app:textSize="15sp"
+        />
+
+</LinearLayout>

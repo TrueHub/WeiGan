@@ -37,7 +37,6 @@ public class ControlDeviceImp {
         intentResult.putExtra("instruct", "AOGHis");
         intentResult.putParcelableArrayListExtra("gravAArrayList", gravAArrayList);
         context.startActivity(intentResult);
-
     }
 
     public void searchMagnetism(ArrayList<Mag> magArrayList) {
@@ -60,15 +59,10 @@ public class ControlDeviceImp {
 
 
     public void showToast(String str) {
-        if (toast.getView().getParent() != null) {
+        if (toast.getView().getParent() != null)
             toast.cancel();
-        }
-        if (toast.getView().getParent() != null &&
-                str.equals(toast.getView().getContentDescription()))
-            return;
         toast = Toast.makeText(context, str, Toast.LENGTH_SHORT);
         toast.show();
-
     }
 
 }

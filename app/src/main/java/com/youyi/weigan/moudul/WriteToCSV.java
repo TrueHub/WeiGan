@@ -53,7 +53,7 @@ public class WriteToCSV {
     }
 
     //和服务器交互：将数据以json的形式传到服务器中
-    private void sendToService(final UserJsonBean userJsonBean) {
+    private void sendToServer(final UserJsonBean userJsonBean) {
         String userJson = new Gson().toJson(userJsonBean);
         Log.i("MSL", "writeToServer: " + userJson);
 
@@ -155,7 +155,7 @@ public class WriteToCSV {
         UserJsonBean userJsonBean = new UserJsonBean(GATTService.DEVICE_ID);
         userJsonBean.setGravAArrayList(list);
 
-        sendToService(userJsonBean);
+        sendToServer(userJsonBean);
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {//如果不存在SD卡,
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
@@ -184,7 +184,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             int x, y, z;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 1000);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -205,7 +205,7 @@ public class WriteToCSV {
         UserJsonBean userJsonBean = new UserJsonBean(GATTService.DEVICE_ID);
         userJsonBean.setAngVArrayList(list);
 
-        sendToService(userJsonBean);
+        sendToServer(userJsonBean);
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {//如果不存在SD卡,
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
@@ -229,7 +229,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             int x, y, z;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 1000);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -250,7 +250,7 @@ public class WriteToCSV {
         UserJsonBean userJsonBean = new UserJsonBean(GATTService.DEVICE_ID);
         userJsonBean.setMagArrayList(list);
 
-        sendToService(userJsonBean);
+        sendToServer(userJsonBean);
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {//如果不存在SD卡,
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
@@ -274,7 +274,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             int x, y, z;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 1000);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -295,7 +295,7 @@ public class WriteToCSV {
         UserJsonBean userJsonBean = new UserJsonBean(GATTService.DEVICE_ID);
         userJsonBean.setPressureArrayList(list);
 
-        sendToService(userJsonBean);
+        sendToServer(userJsonBean);
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {//如果不存在SD卡,
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
@@ -319,7 +319,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             long pressure;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 1000);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -338,7 +338,7 @@ public class WriteToCSV {
         UserJsonBean userJsonBean = new UserJsonBean(GATTService.DEVICE_ID);
         userJsonBean.setPulseArrayList(list);
 
-        sendToService(userJsonBean);
+        sendToServer(userJsonBean);
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {//如果不存在SD卡,
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
@@ -363,7 +363,7 @@ public class WriteToCSV {
             String time;
             int pulse;
             int trustLevel;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 1000);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;

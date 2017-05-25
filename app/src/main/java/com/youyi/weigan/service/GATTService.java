@@ -28,7 +28,6 @@ import com.youyi.weigan.beans.GravA;
 import com.youyi.weigan.beans.Mag;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
-import com.youyi.weigan.beans.PulseBean;
 import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.thread.CommandPool;
@@ -328,31 +327,28 @@ public class GATTService extends Service {
     }
 
     public void readData(byte[] data) throws NullPointerException {
-/*
+        if (data[2] == ConstantPool.INSTRUCT_SET_TIME) {//返回：设定时间成功
+            if (data[3] == (byte)0x01) {
+                EventUtil.post("SET_TIME_SUCCESS!");
+                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
+            }
+        } else if (data[2] == ConstantPool.INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte)0x06){
+            //返回各传感器的采样频率
 
-        for (byte b : data
-                ) {
-            Log.i("MSL", " data长度：" + data.length + ",分别为：" + b);
-        }
-*/
-        if (data[1] == ConstantPool.INSTRUCT_SET_TIME) {//返回：设定时间成功
-            EventUtil.post("SET_TIME_SUCCESS!");
-            commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
 
-        } else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE) {//返回：查询心率
-            EventUtil.post(new PulseBean(DataUtils.byte2Int(data[3]), DataUtils.byte2Int(data[4])));
-        } else if (data[2] == ConstantPool.INSTRUCT_DELETE_FLASH) {//清除flash数据成功
-            EventUtil.post("已清除设备内flash数据");
+
+        }else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE && data[1] == (byte)0x01) {
+            EventUtil.post("开关实时心率成功");
 
         } else {
             int length = DataUtils.byte2Int(data[1]);//设备返回的数据长度
 
             byte[] timeBytes = new byte[4];//时间数组
             System.arraycopy(data, 3, timeBytes, 0, timeBytes.length);
-            int timeInt = DataUtils.bytes2IntUnsigned(timeBytes);//这里的timeInt是秒级别的
-//            Log.i("MSL", "readData: " + timeInt +","+ System.currentTimeMillis() / 1000);
+            int timeInt = DataUtils.bytes2IntUnsigned(timeBytes);//这里的timeInt是100ms级别的
+//            Log.i("MSL", "readData: " + timeInt +","+ System.currentTimeMillis() / 10);
 
-            if (cameCount != -1) {
+            /*if (cameCount != -1) {
                 if (getDataEnd(timeInt) && data[2] != ConstantPool.INSTRUCT_SEARCH_TIME) {//接收完截至到当前的数据
                     cameCount++;
                     Log.d("MSL", "readData: " + cameCount);
@@ -361,7 +357,8 @@ public class GATTService extends Service {
                         EventUtil.post(new EventNotification("HIS_DATA", true));
                     }
                 }
-            }
+            }*/
+
             byte[] datas = null;//除去数据长度、指令、时间 之后的数组
             if (length > 5) {
                 datas = new byte[length - 5];
@@ -372,10 +369,7 @@ public class GATTService extends Service {
                 case ConstantPool.INSTRUCT_SEARCH_TIME://返回：查询设备状态
                     DeviceStatusBean deviceStatusBean = new DeviceStatusBean();
                     deviceStatusBean.setTime(timeInt);
-                    deviceStatusBean.setPulseAbnomal_min(datas[0]);
-                    deviceStatusBean.setPulseAbnomal_max(datas[1]);
-//                    deviceStatusBean.setSimplingFreq(datas[2]);//样品里没有九轴取样频率
-                    deviceStatusBean.setDeviceElec(datas[2]);
+                    deviceStatusBean.setDeviceElec(datas[0]);
                     EventUtil.post(deviceStatusBean);
                     if (!needSetTime(timeInt)) {
                         EventUtil.post("设备与本地时间无误差");
@@ -385,7 +379,7 @@ public class GATTService extends Service {
                     }
                     break;
 
-                case ConstantPool.INSTRUCT_HIS://返回：查询心率历史
+                case ConstantPool.INSTRUCT_HIS://返回：心率数值
                     Pulse pulse = new Pulse();
                     pulse.setTime(timeInt);
                     pulse.setPulse(DataUtils.byte2Int(data[7]));
@@ -393,7 +387,7 @@ public class GATTService extends Service {
                     EventUtil.post(pulse);
                     break;
 
-                case ConstantPool.INSTRUCT_SEARCH_AOG_HIS://返回：查询重力加速度历史
+                case ConstantPool.INSTRUCT_SEARCH_GRAV_HIS://返回：查询重力加速度历史
                     GravA mGravA = new GravA();
                     mGravA.setTime(timeInt);
                     mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
@@ -402,7 +396,7 @@ public class GATTService extends Service {
                     EventUtil.post(mGravA);
                     break;
 
-                case ConstantPool.INSTRUCT_SEARCH_PALSTANCE://返回：查询角速度历史
+                case ConstantPool.INSTRUCT_SEARCH_ANGV://返回：查询角速度历史
                     AngV angV = new AngV();
                     angV.setTime(timeInt);
                     angV.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
@@ -411,7 +405,7 @@ public class GATTService extends Service {
                     EventUtil.post(angV);
                     break;
 
-                case ConstantPool.INSTRUCT_SEARCH_MAGNETISM://返回：查询地磁历史
+                case ConstantPool.INSTRUCT_SEARCH_MAG://返回：查询地磁历史
                     Mag mag = new Mag();
                     mag.setTime(timeInt);
                     mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
@@ -423,7 +417,9 @@ public class GATTService extends Service {
                 case ConstantPool.INSTRUCT_SEARCH_PRESSURE://返回：查询气压历史
                     Pressure pressure = new Pressure();
                     pressure.setTime(timeInt);
-                    pressure.setIntensityOfPressure(DataUtils.bytes2Long(datas));
+                    byte[] pressureValue = new byte[4];//时间数组
+                    System.arraycopy(datas, 0  , pressureValue , 0 , 4);
+                    pressure.setIntensityOfPressure(DataUtils.bytes2Long(pressureValue));
                     EventUtil.post(pressure);
                     break;
             }
@@ -437,24 +433,15 @@ public class GATTService extends Service {
         setTimeBytes[0] = ConstantPool.HEAD;
         setTimeBytes[1] = (byte) 0x06;
         setTimeBytes[2] = (byte) 0x01;
-        /*for (int i = 0; i < currentTimeBytes.length; i++) {
-            setTimeBytes[i + 3] = currentTimeBytes[i];
-        }*/
         System.arraycopy(currentTimeBytes, 0, setTimeBytes, 3, currentTimeBytes.length);
         setTimeBytes[setTimeBytes.length - 1] = ConstantPool.END;
         commandPool.addCommand(CommandPool.Type.write, setTimeBytes, vibrationChar);
     }
 
     private boolean needSetTime(int time) {
-        int current = (int) (System.currentTimeMillis() / 1000);
+        int current = (int) (System.currentTimeMillis() / 10);
 //        Log.d("MSL", "needSetTime: " + current + "," + time);
         return Math.abs(time - current) >= 1;
-    }
-
-    private boolean getDataEnd(int time) {
-        int current = (int) (System.currentTimeMillis() / 1000);
-//        Log.d("MSL", "needSetTime: " + current + "," + time);
-        return current - time == 9;//因为删flash需要10s以上，所以这里定义9即可
     }
 
 }

@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.youyi.weigan.R;
+import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.PulseBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.utils.EventUtil;
@@ -90,6 +91,7 @@ public class ContentFragment extends Fragment {
         imgWheelView.setCenterImg(centerBmp);
     }
 
+    /**___________________________________________↓↓↓↓__EventBus__↓↓↓↓_______________________________________*/
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getGATTCallback(PulseBean pulseBean) {//实时心率
         card_heartRate.setVisibility(View.VISIBLE);
@@ -97,19 +99,25 @@ public class ContentFragment extends Fragment {
         lineView_heartRate.setCurrentValue(pulseBean.getPulse());
         switch (pulseBean.getTrustLevel()) {
             case 0:
-                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_instruct_0_24dp));
+                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_trust_0));
                 break;
             case 1:
-                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_instruct_1_24dp));
+                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_trust_1));
                 break;
             case 2:
-                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_instruct_2_24dp));
+                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_trust_2));
                 break;
             case 3:
-                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_instruct_3_24dp));
+                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_trust_3));
                 break;
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(Pressure pressure) {
+
+    }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getInstruction(Comm2Frags comm2Frags) {
@@ -117,7 +125,7 @@ public class ContentFragment extends Fragment {
         switch (comm2Frags.getInstruct()) {
             case "PULSE_UP_OFF":
                 Log.d("MSL", "getInstruction: " + comm2Frags.getInstruct());
-                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_instruct_0_24dp));
+                iv_instructLevel.setBackground(getResources().getDrawable(R.drawable.ic_trust_0));
                 tv_heartRate.setText("--");
                 lineView_heartRate.setCurrentValue(0);
                 card_heartRate.setVisibility(View.GONE);
@@ -125,7 +133,16 @@ public class ContentFragment extends Fragment {
             case "PULSE_UP_ON":
                 card_heartRate.setVisibility(View.VISIBLE);
                 break;
+            case "DATA_UP_ON":
+                card_status.setVisibility(View.VISIBLE);
+                break;
+            case "DATA_UP_OFF":
+                tv_status.setText("--");
+                imgWheelView.setChecked(0);
+                card_status.setVisibility(View.GONE);
+                break;
         }
     }
+/**_______________________________________↑↑↑↑__EventBus__↑↑↑↑______________________________________________*/
 
 }

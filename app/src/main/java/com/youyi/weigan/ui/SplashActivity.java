@@ -15,7 +15,7 @@ import com.youyi.weigan.R;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static int DURATION = 1000;
+    private final int DURATION = 500;
     private Window window;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -54,7 +54,7 @@ public class SplashActivity extends AppCompatActivity {
 
             Intent intent = new Intent(SplashActivity.this, MainActivity.class);
 
-            window.setExitTransition(new Slide());//A打开B的时候，A中的View是如何播放动画的
+            window.setExitTransition(new Slide().setDuration(DURATION));//A打开B的时候，A中的View是如何播放动画的
             window.setEnterTransition(new Slide().setDuration(DURATION));//A打开B的时候，B中的View是如何播放动画的
 
             startActivity(intent, option.toBundle());

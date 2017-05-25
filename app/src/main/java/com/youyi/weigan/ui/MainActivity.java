@@ -32,10 +32,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +49,7 @@ import com.youyi.weigan.beans.GravA;
 import com.youyi.weigan.beans.Mag;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
+import com.youyi.weigan.beans.SensorFreq;
 import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.eventbean.Comm2GATT;
@@ -68,14 +71,18 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 
 import static android.view.View.GONE;
+import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_OFF;
+import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.SEARCH_DEVICE_STATUE;
+import static java.sql.Types.REAL;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
     private FrameLayout frame_content;
     private CoordinatorLayout main_content;
+    private CollapsingToolbarLayout collapsingToolbarLayout;
     private NavigationView navigationView;
     private Toolbar toolbar;
     private AppBarLayout appbar;
@@ -99,8 +106,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MenuItem nvg_upload_data;
     private MenuItem nvg_clear_flash;
     private MenuItem nvg_del_cache;
-    //侧滑菜单中的real data 组中的switch
+    //侧滑菜单中的real data 组中的Switch
     private Switch sw_heartRate_real;
+    private Switch sw_data_real;
+    //侧滑菜单中的sensor setting中的SeekBar
+    private SeekBar sb_grav;
+    private SeekBar sb_ang;
+    private SeekBar sb_mag;
+    private SeekBar sb_pressure;
 
     private ControlDeviceImp controlDeviceImp;
 
@@ -119,22 +132,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<AngV> angVArrayList = new ArrayList<>();
     private UserBean userBean;
     private Intent writeServiceIntent;
-    private int LIST_SIZE = 1000;
+    private final int LIST_SIZE = 1000;
+    private final int SIZE_2 = 5 ;
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private static boolean isWifiState;
-    private CollapsingToolbarLayout collapsingToolbarLayout;
+
+    private SensorFreq sensorFreq;
+
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         initView();
+
         initNavigationItem();
 
         requestMyPermissions();
 
-        EventUtil.register(this);
         writeServiceIntent = new Intent(this, WriteService.class);
 
         if (userBean == null) {
@@ -152,16 +170,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setActionBar();
 
-
         setNavigationItemClickListener();
 
         initFragments();
 
-
     }
 
     /**
-     * 初始画navigation中的各个可点击的item，层级比较多
+     * 初始navigation中的各个可点击的item，层级比较多
      */
     private void initNavigationItem() {
 
@@ -195,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //real这一组
                 case R.id.navigation_real_group:
-                    Log.i("MSL", "initNavigationItem: " + root1.getSubMenu().size());
                     //遍历real group 的item下的menu item。。。
                     for (int j = 0; j < root1.getSubMenu().size(); j++) {
                         MenuItem v = root1.getSubMenu().getItem(j);
@@ -217,17 +232,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 });
                                 break;
-                            case R.id.navigation_realTime_pressure:
+                            case R.id.navigation_realData:
+                                sw_data_real = (Switch) v.getActionView().findViewById(R.id._switch);
+                                sw_data_real.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                    @Override
+                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                        if (isChecked){
+                                            EventUtil.post(REAL_DATA_ON);
+                                            EventUtil.post(new Comm2Frags("DATA_UP_ON", Comm2Frags.Type.FromActivity));
 
-                                break;
-                            case R.id.navigation_realTime_gravA:
-
-                                break;
-                            case R.id.navigation_realTime_angV:
-
-                                break;
-                            case R.id.navigation_realTime_mag:
-
+                                        }else {
+                                            EventUtil.post(REAL_DATA_OFF);
+                                            EventUtil.post(new Comm2Frags("DATA_UP_OFF", Comm2Frags.Type.FromActivity));
+                                        }
+                                    }
+                                });
                                 break;
                         }
                     }
@@ -269,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onStart() {
         super.onStart();
-
+        EventUtil.register(this);
     }
 
     private void setActionBar() {
@@ -286,13 +305,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onBackPressed() {
-        if (toast.getView().getParent() == null) {
+        if (toast.getView().getParent() == null)
             toast.show();
-
-        } else {
+        else {
             toast.cancel();
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        EventUtil.register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isStarted) {//停止Service
+            stopService(gattService);
+            isStarted = false;
+        }
+        EventUtil.unregister(this);//注销eventbus
     }
 
     @Override
@@ -391,20 +425,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
 
                         break;
-                    case R.id.navigation_realTime_pressure:
-
+                    case R.id.navigation_realData:
+                        sw_data_real.setChecked(!sw_data_real.isChecked());
                         break;
-                    case R.id.navigation_realTime_gravA:
-
-                        break;
-                    case R.id.navigation_realTime_angV:
-
-                        break;
-                    case R.id.navigation_realTime_mag:
-
-                        break;
-                    case R.id.navigation_sensor_setting:
+                    case R.id.navigation_sensor_freq:
                         Log.d("MSL", "onNavigationItemSelected: sensor");
+                        showDialogForSeekBar(MainActivity.this);
                         break;
                     case R.id.navigation_vib_low:
 
@@ -417,6 +443,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return false;
             }
         });
+    }
+
+    private void changeSwitchState(){
+
     }
 
     private void initView() {
@@ -458,9 +488,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * _______________________________________↓↓↓↓EventBus↓↓↓↓_________________________________________________________
+     * ___________________________________________↓↓↓↓__EventBus__↓↓↓↓_____________________________________________________________
      */
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getGATTCallback(String str) {
         switch (str) {
@@ -533,10 +562,97 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startWriteService();
                 break;
         }
-
     }
 
-/**_______________________________________↑↑↑↑EventBus↑↑↑↑_________________________________________________________*/
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(Pulse pulse) {
+        //心率历史
+        pulseArrayList.add(pulse);
+        //添加到另一个list，用于传到searchResultActivity中本地显示最近的数据
+        pulseList.add(pulse);
+        if (pulseList.size() > SIZE_2) {
+            pulseList.remove(0);
+        }
+
+        if (pulseArrayList.size() == LIST_SIZE || getDataEnd) {
+
+            ArrayList<Pulse> list = new ArrayList<>();
+            list.addAll(pulseArrayList);
+            userBean.getPulseArrayList().addAll(list);
+            pulseArrayList.clear();
+//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getPulseArrayList().size() + "," + pulseArrayList.size() + "," +list.size());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(GravA gravA) {
+        //心率历史
+        gravAArrayList.add(gravA);
+        gravAList.add(gravA);
+        if (gravAList.size() > SIZE_2) {
+            gravAList.remove(0);
+        }
+        if (gravAArrayList.size() == LIST_SIZE || getDataEnd) {
+            ArrayList<GravA> list = new ArrayList<>();
+            list.addAll(gravAArrayList);
+            userBean.getGravAArrayList().addAll(list);
+            gravAArrayList.clear();
+//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getGravAArrayList().size() + "," + gravAArrayList.size() + "," +list.size());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(AngV angV) {
+        //心率历史
+        angVArrayList.add(angV);
+        angVList.add(angV);
+        if (angVList.size() > SIZE_2) {
+            angVList.remove(0);
+        }
+        if (angVArrayList.size() == LIST_SIZE || getDataEnd) {
+            ArrayList<AngV> list = new ArrayList<>();
+            list.addAll(angVArrayList);
+            userBean.getAngVArrayList().addAll(list);
+            angVArrayList.clear();
+//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getAngVArrayList().size() + "," + angVArrayList.size() + "," +list.size());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(Mag mag) {
+        //心率历史
+        magArrayList.add(mag);
+        magList.add(mag);
+        if (magList.size() > SIZE_2) {
+            magList.remove(0);
+        }
+        if (magArrayList.size() == LIST_SIZE || getDataEnd) {
+            ArrayList<Mag> list = new ArrayList<>();
+            list.addAll(magArrayList);
+            userBean.getMagArrayList().addAll(list);
+            magArrayList.clear();
+//            Log.i("MSL", "getBluetoothCallback: " + userBean.getPulseArrayList().size() + "," + magArrayList.size() + "," +list.size());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(Pressure pressure) {
+        //心率历史
+        pressureArrayList.add(pressure);
+        pressureList.add(pressure);
+        if (pressureList.size() > SIZE_2) {
+            pressureList.remove(0);
+        }
+        if (pressureArrayList.size() == LIST_SIZE || getDataEnd) {
+            ArrayList<Pressure> list = new ArrayList<>();
+            list.addAll(pressureArrayList);
+            userBean.getPressureArrayList().addAll(list);
+            pressureArrayList.clear();
+//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getPulseArrayList().size() + "," + pressureArrayList.size() + "," +list.size());
+        }
+    }
+
+/**_______________________________________↑↑↑↑__EventBus__↑↑↑↑__________________________________________________________*/
 
     /**
      * 显示Toolbar
@@ -621,6 +737,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startService(writeServiceIntent);
     }
 
+    /****************************seekBar的listener事件************************************************ */
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        switch (seekBar.getId()) {
+            case R.id.ss_seek_grav:
+                if (sensorFreq == null) sensorFreq = new SensorFreq();
+                sensorFreq.setGravFreq(progress +10);
+                break;
+            case R.id.ss_seek_ang:
+                if (sensorFreq == null) sensorFreq = new SensorFreq();
+                sensorFreq.setAngFreq(progress + 10);
+                break;
+            case R.id.ss_seek_mag:
+                if (sensorFreq == null) sensorFreq = new SensorFreq();
+                sensorFreq.setMagFreq(progress + 10);
+                break;
+            case R.id.ss_seek_pressure:
+                if (sensorFreq == null) sensorFreq = new SensorFreq();
+                sensorFreq.setPressureFreq(progress + 10);
+                break;
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+
+    }
+    /******************************seekBar的listener事件******************************************** */
+
     private class NetWorkStateChangedReceiver extends BroadcastReceiver {
 
         @Override
@@ -682,11 +832,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void showMessageOKCancel(Activity activity, String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(activity)
+        AlertDialog dlgShowBack = new AlertDialog.Builder(activity, R.style.MyDialogStyle)
                 .setMessage(message)
                 .setPositiveButton("已经接收完了", okListener)
                 .setNegativeButton("暂时不删", null)
-                .create()
-                .show();
+                .create();
+        dlgShowBack.show();
+        Button btnPositive =dlgShowBack.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+        Button btnNegative =dlgShowBack.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
+
+        btnNegative.setTextColor(getResources().getColor(R.color.textColorPrimary));
+//        btnNegative.setBackground(getResources().getDrawable(R.drawable.btn_selector_dialog));
+
+        btnPositive.setTextColor(getResources().getColor(R.color.textColorPrimary_alpha));
+//        btnPositive.setBackground(getResources().getDrawable(R.drawable.btn_selector_dialog));
+
+        TextView tvMsg = (TextView) dlgShowBack.findViewById(android.R.id.message);
+        tvMsg.setTextColor(getResources().getColor(R.color.textColorPrimary));
+//        tvMsg.setTextAppearance(this,R.style.text_msg);
+//        tvMsg.setTextSize(TypedValue.COMPLEX_UNIT_SP , 10);
+    }
+
+    private void showDialogForSeekBar(Activity activity){
+        sensorFreq = new SensorFreq();
+
+        LinearLayout ll = (LinearLayout) getLayoutInflater().inflate
+                (R.layout.sensor_setting,(ViewGroup) findViewById(R.id.sensor_setting_ll));
+
+        sb_grav = (SeekBar)ll.findViewById(R.id.ss_seek_grav);
+        sb_ang = (SeekBar)ll.findViewById(R.id.ss_seek_ang);
+        sb_mag = (SeekBar)ll.findViewById(R.id.ss_seek_mag);
+        sb_pressure = (SeekBar)ll.findViewById(R.id.ss_seek_pressure);
+
+
+        AlertDialog dialog = new AlertDialog.Builder(activity)
+                .setTitle("设定采样频率")
+                .setMessage(" ")
+                .setIcon(R.drawable.ic_settings_sensor_24dp)
+                .setView(ll)
+                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (sensorFreq != null){
+                            EventUtil.post(sensorFreq);
+                            Log.i("MSL", "onClick: \n"+ sensorFreq.getGravFreq() +"\n" + sensorFreq.getAngFreq()
+                                    +"\n"+ sensorFreq.getMagFreq()+"\n" + sensorFreq.getPressureFreq());
+                        }
+                    }
+                })
+                .setNegativeButton("cancel", null)
+                .create();
+        dialog.show();
+
+        sb_grav.setOnSeekBarChangeListener(this);
+
+
+
     }
 }

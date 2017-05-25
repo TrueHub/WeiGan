@@ -16,29 +16,11 @@ public class Comm2GATT {
         /** 实时心率开 */
         REAL_PULSE_OFF,
 
-        /** 实时重力加速度开 */
-        REAL_GRAV_ON,
+        /** 实时实时数据开 开 */
+        REAL_DATA_ON,
 
-        /** 实时重力加速度关*/
-        REAL_GRAV_OFF,
-
-        /** 实时角速度开 */
-        REAL_ANG_ON,
-
-        /** 实时角速度关*/
-        REAL_ANG_OFF,
-
-        /** 实时地磁开 */
-        REAL_MAG_ON,
-
-        /** 实时地磁关*/
-        REAL_MAG_OFF,
-
-        /** 实时气压强度开 */
-        REAL_PRESSURE_ON,
-
-        /** 实时气压强度关*/
-        REAL_PRESSURE_OFF,
+        /** 实时数据关*/
+        REAL_DATA_OFF,
 
         /** 收取设备里的缓存数据*/
         SEARCH_HIS,

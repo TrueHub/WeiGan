@@ -8,6 +8,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
+import com.youyi.weigan.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,7 +97,7 @@ public class RequestPermissionUtils {
     }
 
     private static void showMessageOKCancel(Activity activity, String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(activity)
+        new AlertDialog.Builder(activity, R.style.MyDialogStyle)
                 .setMessage(message)
                 .setPositiveButton("好啊", okListener)
                 .setNegativeButton("残忍拒绝", null)

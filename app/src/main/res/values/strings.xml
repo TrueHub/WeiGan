@@ -19,4 +19,5 @@
     <string name="lowerline">心率监控·lowerLine</string>
     <string name="sensor_freq">九轴传感器频率</string>
     <string name="higherline">心率监控·higherLine</string>
+    <string name="data">数据</string>
 </resources>

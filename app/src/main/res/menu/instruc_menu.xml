@@ -36,23 +36,9 @@
                 android:id="@+id/navigation_realTime_heartRate"
                 android:icon="@drawable/ic_heart_24dp"
                 app:actionLayout="@layout/switch_item"/>
-            <item android:title="@string/pressure"
-                android:id="@+id/navigation_realTime_pressure"
-                android:icon="@drawable/ic_presser_24dp"
-                app:actionLayout="@layout/switch_item"/>
-            <item android:title="@string/graV"
-                android:id="@+id/navigation_realTime_gravA"
-                android:icon="@drawable/ic_grav_24dp"
-                app:actionLayout="@layout/switch_item"
-                />
-            <item android:title="@string/angV"
-                android:id="@+id/navigation_realTime_angV"
-                android:icon="@drawable/ic_ang_24dp"
-                app:actionLayout="@layout/switch_item"
-                />
-            <item android:title="@string/mag"
-                android:id="@+id/navigation_realTime_mag"
-                android:icon="@drawable/ic_mag_24dp"
+            <item android:title="@string/data"
+                android:id="@+id/navigation_realData"
+                android:icon="@drawable/ic_data"
                 app:actionLayout="@layout/switch_item"
                 />
         </menu>
