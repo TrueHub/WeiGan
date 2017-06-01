@@ -25,8 +25,11 @@ public class Comm2GATT {
         /** 收取设备里的缓存数据*/
         SEARCH_HIS,
 
-        /** 连接*/
-        START_CONNECT,
+        /** 扫描*/
+        START_SCAN,
+
+        /** 停止扫描*/
+        STOP_SCAN,
 
         /** 断开连接*/
         STOP_GATT_SERVICE,

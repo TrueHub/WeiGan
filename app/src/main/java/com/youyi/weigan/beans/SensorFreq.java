@@ -9,14 +9,6 @@ import android.os.Parcelable;
 
 public class SensorFreq implements Parcelable{
 
-    private int gravFreq;
-    private int angFreq;
-    private int magFreq;
-    private int pressureFreq;
-
-    public SensorFreq() {
-    }
-
     protected SensorFreq(Parcel in) {
         gravFreq = in.readInt();
         angFreq = in.readInt();
@@ -35,6 +27,31 @@ public class SensorFreq implements Parcelable{
             return new SensorFreq[size];
         }
     };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(gravFreq);
+        dest.writeInt(angFreq);
+        dest.writeInt(magFreq);
+        dest.writeInt(pressureFreq);
+    }
+
+    public enum Type{
+        comm2Gatt,comm2Activity
+    }
+    private int gravFreq;
+    private int angFreq;
+    private int magFreq;
+    private int pressureFreq;
+    private Type type;
+
+    public SensorFreq() {
+    }
 
     public int getGravFreq() {
         return gravFreq;
@@ -68,16 +85,11 @@ public class SensorFreq implements Parcelable{
         this.pressureFreq = pressureFreq;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public Type getType() {
+        return type;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(gravFreq);
-        dest.writeInt(angFreq);
-        dest.writeInt(magFreq);
-        dest.writeInt(pressureFreq);
+    public void setType(Type type) {
+        this.type = type;
     }
 }

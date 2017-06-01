@@ -87,7 +87,6 @@ public class BattaryView extends View {
         setMeasuredDimension(width, height);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -112,13 +111,21 @@ public class BattaryView extends View {
         int w1 = imgW / 3;//电池凸点的宽度
         //绘制背景
         mPaint.setColor(backgroundColor);
-        canvas.drawRoundRect(rectF.left,h1 + getPaddingTop(),rectF.right,getHeight() - getPaddingBottom(),round,round,mPaint);
-        canvas.drawRect(getPaddingLeft() + w1,getPaddingTop(),rectF.right - w1,h1 + getPaddingTop(),mPaint);
+
+        rectF.top = h1 + getPaddingTop();
+        rectF.bottom = getHeight() - getPaddingBottom();
+        canvas.drawRoundRect(rectF, round, round, mPaint);
+
+        canvas.drawRect(getPaddingLeft() + w1, getPaddingTop(), rectF.right - w1, h1 + getPaddingTop(), mPaint);
         //绘制有电部分
         canvas.save();
         canvas.clipRect(rectF);
         mPaint.setColor(forceColor);
-        canvas.drawRoundRect(rectF.left, getPaddingTop() + h1, rectF.right, rectF.bottom, round, round, mPaint);
+
+        rectF.bottom = getHeight() - spaceTop;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            canvas.drawRoundRect(rectF, round, round, mPaint);
+        }
         canvas.drawRect(rectF.left + w1, rectF.top, rectF.right - w1, getPaddingTop() + h1 + h1 / 10, mPaint);
         canvas.restore();
         canvas.restoreToCount(layerId);

@@ -31,6 +31,7 @@ import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.SensorFreq;
 import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
+import com.youyi.weigan.eventbean.Event_BleDevice;
 import com.youyi.weigan.thread.CommandPool;
 import com.youyi.weigan.utils.ConstantPool;
 import com.youyi.weigan.utils.DataUtils;
@@ -59,7 +60,6 @@ public class GATTService extends Service {
     private boolean mScanning;
     private BluetoothGattCharacteristic vibrationChar;
     private boolean isConnected = false;
-    private int cameCount = -1;
     private BluetoothGatt mGatt;
 
     @Override
@@ -87,7 +87,7 @@ public class GATTService extends Service {
         EventUtil.register(this);
         handler = new Handler();
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             mBluetoothAdapter = bluetoothManager.getAdapter();
         } else {
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -106,12 +106,12 @@ public class GATTService extends Service {
         if (mGattCallback == null) mGattCallback = new BLEGATTCallBack();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {//5.0以上
-            if (mScanCallBack_lollipop == null)
+//            if (mScanCallBack_lollipop == null)
                 mScanCallBack_lollipop = new LeScanCallback_LOLLIPOP();
             mBluetoothScanner = mBluetoothAdapter.getBluetoothLeScanner();
             mBluetoothScanner.startScan(mScanCallBack_lollipop);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {//4.3 ~ 5.0
-            if (mScanCallBack_lollipop == null)
+        } else  {//4.3 ~ 5.0
+//            if (mScanCallBack_lollipop == null)
                 mScanCallBack_jelly = new LeScanCallback_JELLY_BEAN();
             mBluetoothAdapter.startLeScan(mScanCallBack_jelly);
 
@@ -126,11 +126,12 @@ public class GATTService extends Service {
                     mScanning = false;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         mBluetoothScanner.stopScan(mScanCallBack_lollipop);
+                    } else {
+                        mBluetoothAdapter.stopLeScan(mScanCallBack_jelly);
                     }
                 }
             }
         }, 1000 * 10);
-
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -143,38 +144,35 @@ public class GATTService extends Service {
             }
             Log.i("MSL", "onScanResult: 扫描到设备：" + result.getDevice().getName() + "\n" + result.getDevice().getAddress());
 
-            EventUtil.post(result.getDevice());
+            EventUtil.post(new Event_BleDevice(result.getDevice(), Event_BleDevice.From.Gatt));
 
-            if (result.getDevice().getName() != null && DEVICE_ID.equals(result.getDevice().getName())) {
-                mTarget = result.getDevice();
-                if (!isConnected) {
-                    mTarget.connectGatt(GATTService.this, false, mGattCallback);
-                    isConnected = true;
-                }
-                mBluetoothScanner.stopScan(mScanCallBack_lollipop);
-
-                if (mBluetoothAdapter.getBondedDevices().contains(mTarget)) {
-                    EventUtil.post("目标设备已配对");
-                }
-            }
         }
     }
 
     private class LeScanCallback_JELLY_BEAN implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            if (device.getName() != null && device.getName().equals(DEVICE_ID)) {
-                mTarget = device;
-                if (!isConnected) {
-                    mTarget.connectGatt(GATTService.this, false, mGattCallback);
-                    isConnected = true;
-                }
-                mBluetoothAdapter.stopLeScan(mScanCallBack_jelly);
+            Log.i("MSL", "onScanResult: JELLY_BEAN 扫描到设备：" + device.getName() + "\n" + device.getAddress());
 
-                if (mBluetoothAdapter.getBondedDevices().contains(mTarget)) {
-                    EventUtil.post("目标设备已配对");
-                }
-            }
+            EventUtil.post(new Event_BleDevice(device, Event_BleDevice.From.Gatt));
+
+        }
+    }
+
+    private void stopScan() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mBluetoothScanner.stopScan(mScanCallBack_lollipop);
+        } else
+            mBluetoothAdapter.stopLeScan(mScanCallBack_jelly);
+    }
+
+    private void connect() {
+        if (!isConnected) {
+            mTarget.connectGatt(GATTService.this, false, mGattCallback);
+            isConnected = true;
+        }
+        if (mBluetoothAdapter.getBondedDevices().contains(mTarget)) {
+            EventUtil.post("目标设备已配对");
         }
     }
 
@@ -192,6 +190,7 @@ public class GATTService extends Service {
                 commandPool = new CommandPool(GATTService.this, gatt);
                 new Thread(commandPool).start();
                 Log.i("MSL", "Connected to GATT server 连接成功");
+                stopScan();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 //设备断开
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
@@ -292,7 +291,9 @@ public class GATTService extends Service {
         }
     }
 
-    /**________↓↓_______MainActivity的btn控制这里_____________↓↓↓↓_eventBus_↓↓↓↓↓___________________________________________________*/
+    /**
+     * ________↓↓_______MainActivity的btn控制这里_____________↓↓↓↓_eventBus_↓↓↓↓↓___________________________________________________
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void btnClick(Comm2GATT.TYPE type) {
         if (vibrationChar == null) return;
@@ -315,13 +316,18 @@ public class GATTService extends Service {
             case SEARCH_HIS:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_HIS, vibrationChar);
                 break;
-            case START_CONNECT:
+            case START_SCAN:
+                Log.i("MSL", "gatt btnClick: start scan");
                 searchDevice();
+                break;
+            case STOP_SCAN:
+                Log.i("MSL", "gatt btnClick: stop scan");
+                stopScan();
                 break;
             case STOP_GATT_SERVICE:
                 EventUtil.post("断开GATT连接");
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
-                Log.i("MSL", "Disconnected from GATT server");
+//                Log.i("MSL", "Disconnected from GATT server");
                 mGatt.disconnect();
                 break;
             case CLEAR_FLASH:
@@ -332,29 +338,49 @@ public class GATTService extends Service {
         }
     }
 
-    /** 设置传感器的频率*/
-    public void sensorSetting(SensorFreq sensorFreq){
-        byte[] freq = ConstantPool.SET_SENSOR_FREQ;
-        freq[3] = DataUtils.int2OneByte(sensorFreq.getGravFreq());
-        freq[4] = DataUtils.int2OneByte(sensorFreq.getAngFreq());
-        freq[5] = DataUtils.int2OneByte(sensorFreq.getMagFreq());
-        freq[6] = DataUtils.int2OneByte(sensorFreq.getPressureFreq());
-        commandPool.addCommand(CommandPool.Type.write,freq,vibrationChar);
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void connectedDevice(Event_BleDevice event_bleDevice) {
+        if (event_bleDevice.getFrom() == Event_BleDevice.From.Gatt) return;
+        mTarget = event_bleDevice.getDevice();
+        connect();
     }
 
-    /** _________________________________________________________________________________________________________*/
+    /**
+     * 设置传感器的频率
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void sensorSetting(SensorFreq sensorFreq) {
+        if (sensorFreq.getType() == SensorFreq.Type.comm2Gatt) {
+            byte[] freq = ConstantPool.SET_SENSOR_FREQ;
+            freq[3] = DataUtils.int2OneByte(sensorFreq.getGravFreq());
+            freq[4] = DataUtils.int2OneByte(sensorFreq.getAngFreq());
+            freq[5] = DataUtils.int2OneByte(sensorFreq.getMagFreq());
+            freq[6] = DataUtils.int2OneByte(sensorFreq.getPressureFreq());
+            commandPool.addCommand(CommandPool.Type.write, freq, vibrationChar);
+        }
+    }
+
+/**
+ * _________________________________________________________________________________________________________
+ */
 
     public void readData(byte[] data) throws NullPointerException {
         if (data[2] == ConstantPool.INSTRUCT_SET_TIME) {//返回：设定时间成功
-            if (data[3] == (byte)0x01) {
+            if (data[3] == (byte) 0x01) {
                 EventUtil.post("SET_TIME_SUCCESS!");
-                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
+//                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
             }
-        } else if (data[2] == ConstantPool.INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte)0x06){
+        } else if (data[2] == ConstantPool.INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte) 0x06) {
             //返回各传感器的采样频率
+            SensorFreq sensorFreq = new SensorFreq();
+            sensorFreq.setGravFreq(DataUtils.Byte2Int(data[3]));
+            sensorFreq.setAngFreq(DataUtils.Byte2Int(data[4]));
+            sensorFreq.setMagFreq(DataUtils.Byte2Int(data[5]));
+            sensorFreq.setPressureFreq(DataUtils.Byte2Int(data[6]));
+            sensorFreq.setType(SensorFreq.Type.comm2Activity);
+            EventUtil.post(sensorFreq);
 
-        }else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE && data[1] == (byte)0x01) {
+        } else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE && data[3] == (byte) 0x01) {
             EventUtil.post("开关实时心率成功");
 
         } else {
@@ -366,11 +392,12 @@ public class GATTService extends Service {
 //            Log.i("MSL", "readData: " + timeInt +","+ System.currentTimeMillis() / 10);
 
             byte[] datas = null;//除去数据长度、指令、时间 之后的数组
-            if (length > 5) {
-                datas = new byte[length - 5];
+            if (length > 6) {
+                datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
             }
 
+            if (datas == null) return;
             switch (data[2]) {
                 case ConstantPool.INSTRUCT_SEARCH_TIME://返回：查询设备状态
                     DeviceStatusBean deviceStatusBean = new DeviceStatusBean();
@@ -388,8 +415,8 @@ public class GATTService extends Service {
                 case ConstantPool.INSTRUCT_HIS://返回：心率数值
                     Pulse pulse = new Pulse();
                     pulse.setTime(timeInt);
-                    pulse.setPulse(DataUtils.byte2Int(data[7]));
-                    pulse.setTrustLevel(DataUtils.byte2Int(data[8]));
+                    pulse.setPulse(DataUtils.byte2Int(datas[0]));
+                    pulse.setTrustLevel(DataUtils.byte2Int(datas[1]));
                     EventUtil.post(pulse);
                     break;
 
@@ -424,7 +451,7 @@ public class GATTService extends Service {
                     Pressure pressure = new Pressure();
                     pressure.setTime(timeInt);
                     byte[] pressureValue = new byte[4];//时间数组
-                    System.arraycopy(datas, 0  , pressureValue , 0 , 4);
+                    System.arraycopy(datas, 0, pressureValue, 0, 4);
                     pressure.setIntensityOfPressure(DataUtils.bytes2Long(pressureValue));
                     EventUtil.post(pressure);
                     break;

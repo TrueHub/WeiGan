@@ -14,15 +14,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.youyi.weigan.R;
+import com.youyi.weigan.beans.AngV;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.PulseBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
+import com.youyi.weigan.utils.ConstantPool;
 import com.youyi.weigan.utils.EventUtil;
+import com.youyi.weigan.utils.MathUtils;
 import com.youyi.weigan.view.ImgWheelView;
 import com.youyi.weigan.view.LineView;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import java.util.ArrayList;
+
+import static com.youyi.weigan.utils.MathUtils.getVarianceUtil;
 
 public class ContentFragment extends Fragment {
 
@@ -33,6 +39,7 @@ public class ContentFragment extends Fragment {
     private ImgWheelView imgWheelView;
     private TextView tv_status;
     private CardView card_status;
+    private ArrayList<AngV> latestAngV = new ArrayList<>();
 
     public ContentFragment() {
         // Required empty public constructor
@@ -86,12 +93,14 @@ public class ContentFragment extends Fragment {
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_sit),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_sleep)
         };
-        Bitmap centerBmp = BitmapFactory.decodeResource(getResources(),R.drawable.ic_state);
+        Bitmap centerBmp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_state);
         imgWheelView.setImgs(imgs);
         imgWheelView.setCenterImg(centerBmp);
     }
 
-    /**___________________________________________↓↓↓↓__EventBus__↓↓↓↓_______________________________________*/
+    /**
+     * ___________________________________________↓↓↓↓__EventBus__↓↓↓↓_______________________________________
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getGATTCallback(PulseBean pulseBean) {//实时心率
         card_heartRate.setVisibility(View.VISIBLE);
@@ -118,6 +127,11 @@ public class ContentFragment extends Fragment {
 
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public synchronized void getGATTCallback(AngV angV) {
+        latestAngV.add(angV);
+
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getInstruction(Comm2Frags comm2Frags) {
@@ -135,14 +149,56 @@ public class ContentFragment extends Fragment {
                 break;
             case "DATA_UP_ON":
                 card_status.setVisibility(View.VISIBLE);
+
                 break;
             case "DATA_UP_OFF":
                 tv_status.setText("--");
                 imgWheelView.setChecked(0);
                 card_status.setVisibility(View.GONE);
+                latestAngV.clear();
                 break;
         }
     }
-/**_______________________________________↑↑↑↑__EventBus__↑↑↑↑______________________________________________*/
+
+    /**
+     * _______________________________________↑↑↑↑__EventBus__↑↑↑↑______________________________________________
+     */
+
+    /** 当前 是 跑步 状态 否 走路*/
+    private boolean AngVCompute() {
+        if (latestAngV.size() < 5) return false;
+        long current = System.currentTimeMillis();
+        ArrayList<Integer> listX = new ArrayList<>();
+        ArrayList<Integer> listY = new ArrayList<>();
+        ArrayList<Integer> listZ = new ArrayList<>();
+        int a = -1;
+        for (int i = 0; i < latestAngV.size(); i++) {
+            AngV angV = latestAngV.get(i);
+            if (angV.getTime() * 10 < current - 1000 * 5) {
+                a = i ;
+            }
+            listX.add(angV.getVelX());
+            listY.add(angV.getVelY());
+            listZ.add(angV.getVelZ());
+        }
+        if (a != -1) {
+            for (int i = 0; i <= a; i++) {
+                latestAngV.remove(0);
+                listX.remove(0);
+                listY.remove(0);
+                listZ.remove(0);
+            }
+        }
+
+        Integer[] xarray = listX.toArray(new Integer[listX.size()]);
+        Integer[] yarray = listX.toArray(new Integer[listY.size()]);
+        Integer[] zarray = listX.toArray(new Integer[listZ.size()]);
+
+        double xVariance = MathUtils.getVarianceUtil(xarray);
+        double yVariance = MathUtils.getVarianceUtil(yarray);
+        double zVariance = MathUtils.getVarianceUtil(zarray);
+
+        return xVariance >= ConstantPool.ANG_X && yVariance >= ConstantPool.ANG_Y && zVariance >= ConstantPool.ANG_Z;
+    }
 
 }

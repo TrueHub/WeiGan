@@ -46,18 +46,22 @@ public class SplashActivity extends AppCompatActivity {
 
     private class SplashRunnable implements Runnable {
 
-        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void run() {
 
-            ActivityOptions option = ActivityOptions.makeSceneTransitionAnimation(SplashActivity.this);
+            ActivityOptions option = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                option = ActivityOptions.makeSceneTransitionAnimation(SplashActivity.this);
+            }
 
             Intent intent = new Intent(SplashActivity.this, MainActivity.class);
 
-            window.setExitTransition(new Slide().setDuration(DURATION));//A打开B的时候，A中的View是如何播放动画的
-            window.setEnterTransition(new Slide().setDuration(DURATION));//A打开B的时候，B中的View是如何播放动画的
-
-            startActivity(intent, option.toBundle());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.setExitTransition(new Slide().setDuration(DURATION));//A打开B的时候，A中的View是如何播放动画的
+                window.setEnterTransition(new Slide().setDuration(DURATION));//A打开B的时候，B中的View是如何播放动画的
+                startActivity(intent, option.toBundle());
+            }
+            startActivity(intent);
             finish();
         }
     }

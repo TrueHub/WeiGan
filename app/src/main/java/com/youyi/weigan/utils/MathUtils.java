@@ -7,7 +7,7 @@ package com.youyi.weigan.utils;
 
 public class MathUtils {
 
-    public static double getVarianceUtil(double[] nums) {
+    public static double getVarianceUtil(Integer[] nums) {
         double avg = 0 ;//平均值
         for (double n :nums) {
             avg += n;
@@ -21,8 +21,8 @@ public class MathUtils {
     }
 
     public static void main (String[] args) {
-        System.out.println("方差为：" +getVarianceUtil(new double[]{50,100,100,50,60}));
-        System.out.printf("方差为：" +getVarianceUtil(new double[]{73,72,75,70,70}));
+        System.out.println("方差为：" +getVarianceUtil(new Integer[]{50,100,100,50,60}));
+        System.out.printf("方差为：" +getVarianceUtil(new Integer[]{73,72,75,70,70}));
     }
 
 }

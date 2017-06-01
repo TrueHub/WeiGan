@@ -3,6 +3,7 @@ package com.youyi.weigan.ui;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,6 +25,9 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -43,6 +47,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.youyi.weigan.R;
+import com.youyi.weigan.adapter.DeviceListAdapter;
 import com.youyi.weigan.beans.AngV;
 import com.youyi.weigan.beans.DeviceStatusBean;
 import com.youyi.weigan.beans.GravA;
@@ -54,6 +59,7 @@ import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
+import com.youyi.weigan.eventbean.Event_BleDevice;
 import com.youyi.weigan.moudul.ControlDeviceImp;
 import com.youyi.weigan.service.GATTService;
 import com.youyi.weigan.service.WriteService;
@@ -76,7 +82,6 @@ import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.SEARCH_DEVICE_STATUE;
-import static java.sql.Types.REAL;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
@@ -133,10 +138,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private UserBean userBean;
     private Intent writeServiceIntent;
     private final int LIST_SIZE = 1000;
-    private final int SIZE_2 = 5 ;
+    private final int SIZE_2 = 5;
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private static boolean isWifiState;
     private SensorFreq sensorFreq;//带有传感器频率设置的bean类
+    private DeviceListAdapter adapter;
+    private AlertDialog devicelistDialog;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -233,11 +241,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 sw_data_real.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                     @Override
                                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                        if (isChecked){
+                                        if (isChecked) {
                                             EventUtil.post(REAL_DATA_ON);
                                             EventUtil.post(new Comm2Frags("DATA_UP_ON", Comm2Frags.Type.FromActivity));
 
-                                        }else {
+                                        } else {
                                             EventUtil.post(REAL_DATA_OFF);
                                             EventUtil.post(new Comm2Frags("DATA_UP_OFF", Comm2Frags.Type.FromActivity));
                                         }
@@ -265,10 +273,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     break;
             }
-
         }
-
-
     }
 
     private void initFragments() {
@@ -377,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         if (title.equals("连接")) {
                             if (ServiceUtils.isServiceWork(MainActivity.this, "com.youyi.weigan.service.GATTService")) {
-                                EventUtil.post(Comm2GATT.TYPE.START_CONNECT);
+                                EventUtil.post(Comm2GATT.TYPE.START_SCAN);
                                 Log.e("MSL", "onClick: gatt service is running");
                             } else {
                                 gattService = new Intent(MainActivity.this, GATTService.class);
@@ -441,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void changeSwitchState(){
+    private void changeSwitchState() {
 
     }
 
@@ -498,11 +503,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private ArrayList<BluetoothDevice> btDeviceList = new ArrayList<>();
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getBtDevice(Event_BleDevice event_bleDevice) {
+        if (event_bleDevice.getFrom() == Event_BleDevice.From.Activity) {
+            devicelistDialog.dismiss();
+            devicelistDialog = null;
+        } else if (event_bleDevice.getFrom() == Event_BleDevice.From.Gatt) {
+            BluetoothDevice bluetoothDevice = event_bleDevice.getDevice();
+            if (btDeviceList.contains(bluetoothDevice)) return;
+            if (bluetoothDevice.getName() == null) return;
+            btDeviceList.add(bluetoothDevice);
+
+            if (btDeviceList.size() > 0) {
+                if (adapter == null) adapter = new DeviceListAdapter(btDeviceList, this);
+
+                recyclerView = new RecyclerView(this);
+                recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                recyclerView.addItemDecoration(new DividerItemDecoration(
+                        this, DividerItemDecoration.HORIZONTAL));
+                recyclerView.setAdapter(adapter);
+
+                adapter.notifyDataSetChanged();
+                showDeviceChooseDialog(MainActivity.this);
+            }
+        }
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public synchronized void getGATTCallback(DeviceStatusBean deviceStatusBean) {
         //设备返回状态值
         final int[] time = {deviceStatusBean.getTime()};
-        Log.i("MSL", "getBluetoothHelathCallback: " + (long) time[0] * 1000 + "," + time[0]);
+//        Log.i("MSL", "getGATTCallback: " + (long) time[0] * 1000 + "," + time[0]);
         int pulseAbnomal_min = deviceStatusBean.getPulseAbnomal_min();
         int pulseAbnomal_max = deviceStatusBean.getPulseAbnomal_max();
         int simplingFreq = deviceStatusBean.getSimplingFreq();
@@ -576,7 +609,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             list.addAll(pulseArrayList);
             userBean.getPulseArrayList().addAll(list);
             pulseArrayList.clear();
-//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getPulseArrayList().size() + "," + pulseArrayList.size() + "," +list.size());
+//            Log.i("MSL", "getGATTCallback: " + userBean.getPulseArrayList().size() + "," + pulseArrayList.size() + "," +list.size());
         }
     }
 
@@ -593,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             list.addAll(gravAArrayList);
             userBean.getGravAArrayList().addAll(list);
             gravAArrayList.clear();
-//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getGravAArrayList().size() + "," + gravAArrayList.size() + "," +list.size());
+//            Log.i("MSL", "getGATTCallback: " + userBean.getGravAArrayList().size() + "," + gravAArrayList.size() + "," +list.size());
         }
     }
 
@@ -610,7 +643,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             list.addAll(angVArrayList);
             userBean.getAngVArrayList().addAll(list);
             angVArrayList.clear();
-//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getAngVArrayList().size() + "," + angVArrayList.size() + "," +list.size());
+//            Log.i("MSL", "getGATTCallback: " + userBean.getAngVArrayList().size() + "," + angVArrayList.size() + "," +list.size());
         }
     }
 
@@ -644,7 +677,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             list.addAll(pressureArrayList);
             userBean.getPressureArrayList().addAll(list);
             pressureArrayList.clear();
-//            Log.i("MSL", "getBluetoothHelathCallback: " + userBean.getPulseArrayList().size() + "," + pressureArrayList.size() + "," +list.size());
+//            Log.i("MSL", "getGATTCallback: " + userBean.getPulseArrayList().size() + "," + pressureArrayList.size() + "," +list.size());
         }
     }
 
@@ -652,6 +685,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 显示Toolbar
+     *
      * @param show true:显示,false:隐藏
      */
     public void showToolbar(boolean show) {
@@ -738,7 +772,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (seekBar.getId()) {
             case R.id.ss_seek_grav:
                 if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setGravFreq(progress +10);
+                sensorFreq.setGravFreq(progress + 10);
                 break;
             case R.id.ss_seek_ang:
                 if (sensorFreq == null) sensorFreq = new SensorFreq();
@@ -754,11 +788,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {}
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {}
+    public void onStartTrackingTouch(SeekBar seekBar) {
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
     /******************************seekBar的listener事件******************************************** */
 
     private class NetWorkStateChangedReceiver extends BroadcastReceiver {
@@ -828,8 +866,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setNegativeButton("暂时不删", null)
                 .create();
         dlgShowBack.show();
-        Button btnPositive =dlgShowBack.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
-        Button btnNegative =dlgShowBack.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
+        Button btnPositive = dlgShowBack.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+        Button btnNegative = dlgShowBack.getButton(android.app.AlertDialog.BUTTON_NEGATIVE);
 
         btnNegative.setTextColor(getResources().getColor(R.color.textColorPrimary));
 //        btnNegative.setBackground(getResources().getDrawable(R.drawable.btn_selector_dialog));
@@ -844,14 +882,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     //Navigation Menu中 Sensor Setting 点击后的dialog界面
-    private void showDialogForSeekBar(Activity activity){
+    private void showDialogForSeekBar(Activity activity) {
         sensorFreq = new SensorFreq();
         LinearLayout ll = (LinearLayout) getLayoutInflater().inflate
-                (R.layout.sensor_setting,(ViewGroup) findViewById(R.id.sensor_setting_ll));
-        sb_grav = (SeekBar)ll.findViewById(R.id.ss_seek_grav);
-        sb_ang = (SeekBar)ll.findViewById(R.id.ss_seek_ang);
-        sb_mag = (SeekBar)ll.findViewById(R.id.ss_seek_mag);
-        sb_pressure = (SeekBar)ll.findViewById(R.id.ss_seek_pressure);
+                (R.layout.sensor_setting, (ViewGroup) findViewById(R.id.sensor_setting_ll));
+        sb_grav = (SeekBar) ll.findViewById(R.id.ss_seek_grav);
+        sb_ang = (SeekBar) ll.findViewById(R.id.ss_seek_ang);
+        sb_mag = (SeekBar) ll.findViewById(R.id.ss_seek_mag);
+        sb_pressure = (SeekBar) ll.findViewById(R.id.ss_seek_pressure);
 
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle("设定采样频率")
@@ -861,10 +899,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setPositiveButton("ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (sensorFreq != null){
+                        if (sensorFreq != null) {
                             EventUtil.post(sensorFreq);
-                            Log.i("MSL", "onClick: \n"+ sensorFreq.getGravFreq() +"\n" + sensorFreq.getAngFreq()
-                                    +"\n"+ sensorFreq.getMagFreq()+"\n" + sensorFreq.getPressureFreq());
+                            Log.i("MSL", "onClick: \n" + sensorFreq.getGravFreq() + "\n" + sensorFreq.getAngFreq()
+                                    + "\n" + sensorFreq.getMagFreq() + "\n" + sensorFreq.getPressureFreq());
                         }
                     }
                 })
@@ -876,5 +914,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sb_mag.setOnSeekBarChangeListener(this);
         sb_pressure.setOnSeekBarChangeListener(this);
 
+    }
+
+    private void showDeviceChooseDialog(Activity activity) {
+        if (devicelistDialog != null) return;
+        devicelistDialog = new AlertDialog.Builder(activity)
+                .setTitle("扫描到的蓝牙设备")
+                .setPositiveButton("停止", null)
+                .setNegativeButton("cancel", null)
+                .setView(recyclerView)
+                .create();
+        devicelistDialog.show();
+
+        final Button btnPositive = devicelistDialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
+        btnPositive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (btnPositive.getText().equals("扫描")) {
+                    btnPositive.setText("停止");
+                    EventUtil.post(Comm2GATT.TYPE.START_SCAN);
+
+                } else if (btnPositive.getText().equals("停止")) {
+                    btnPositive.setText("扫描");
+                    EventUtil.post(Comm2GATT.TYPE.STOP_SCAN);
+                }
+            }
+        });
     }
 }
