@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -23,7 +22,6 @@ public class BattaryView extends View {
     private int battaryPercent;//电量百分比
     private int forceColor;//前景色
     private int backgroundColor;//背景色
-    private float round;//圆角大小，这里写死，省去使用时计算
 
     public void setBattaryPercent(int battaryPercent) {
         this.battaryPercent = battaryPercent;
@@ -90,17 +88,13 @@ public class BattaryView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        round = getHeight() / 30f;//把圆角写死，省去使用时计算
+        float round = getHeight() / 30f;
         mPaint.setStyle(Paint.Style.FILL);//填充模式
         //电池区域的高，宽
         int imgH = getHeight() - getPaddingTop() - getPaddingBottom();
         int imgW = (getWidth() < getHeight() / 2) ? (getWidth() - getPaddingLeft() - getPaddingRight()) : getHeight() / 2;
         //根据电量百分比得到的矩形,top和bottom先占位，等一下再重新赋值，也可以new RectF()里面空参，四个属性挨个设置
-        RectF rectF = new RectF(
-                (float) getPaddingLeft(),
-                0,
-                (float) getPaddingLeft() + imgW,
-                0);
+        RectF rectF = new RectF( (float) getPaddingLeft(), 0, (float) getPaddingLeft() + imgW, 0);
         float spaceTop = (getHeight() - imgH) / 2 + getPaddingTop();
         rectF.top = spaceTop + (1.0f - battaryPercent * 1.0f / 100) * imgH;
         rectF.bottom = getHeight() - spaceTop;

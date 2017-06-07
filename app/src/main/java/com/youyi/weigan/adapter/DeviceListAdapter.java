@@ -23,7 +23,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Lo
 
     private ArrayList<BluetoothDevice> list ;
     private Context context;
-    private TextView tv_deviceName;
 
     public DeviceListAdapter(ArrayList<BluetoothDevice> list, Context context) {
         this.list = list;
@@ -43,7 +42,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Lo
             @Override
             public void onClick(View v) {
                 EventUtil.post(new Event_BleDevice(list.get(position) , Event_BleDevice.From.Activity));
-                Log.i("MSL", "onClick: " + list.get(position));
+
             }
         });
     }

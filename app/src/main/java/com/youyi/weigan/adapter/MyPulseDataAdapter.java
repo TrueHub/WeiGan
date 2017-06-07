@@ -13,6 +13,7 @@ import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.utils.DateUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by user on 2017/4/7.
@@ -53,7 +54,7 @@ public class MyPulseDataAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         Pulse obj = list.get(position);
-        viewHolder.tv__result_time.setText(DateUtils.getDateToString(obj.getTime() * 1000));
+        viewHolder.tv__result_time.setText(DateUtils.getDateToString(obj.getTime() * 100));
         viewHolder.tv__result_x.setText(String.valueOf(obj.getPulse()));
         viewHolder.tv__result_y.setText(String.valueOf(obj.getTrustLevel()));
         viewHolder.tv__result_z.setVisibility(View.GONE);

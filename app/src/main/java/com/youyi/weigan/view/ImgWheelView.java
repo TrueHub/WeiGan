@@ -9,6 +9,8 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
@@ -100,7 +102,6 @@ public class ImgWheelView extends View {
         setMeasuredDimension(width, height);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -146,9 +147,12 @@ public class ImgWheelView extends View {
         float strokew = (outRadiu - insideRadiu) / 2;
         mPaint.setStrokeWidth(strokew * 2);
         mPaint.setStyle(Paint.Style.STROKE);
-        canvas.drawArc(getPaddingLeft() + strokew, getPaddingTop() + strokew,
-                getWidth() - getPaddingRight() - strokew,
-                getHeight() - getPaddingBottom() - strokew, -110, -130, false, mPaint);
+        RectF oval = new RectF();
+        oval.left = getPaddingLeft() + strokew ;
+        oval.top = getPaddingTop() + strokew ;
+        oval.right = getWidth() - getPaddingRight() - strokew ;
+        oval.bottom = getHeight() - getPaddingBottom() - strokew ;
+        canvas.drawArc(oval, -110, -130, false, mPaint);
 
         //附加圆心
 /*      mPaint.setStrokeWidth(1);

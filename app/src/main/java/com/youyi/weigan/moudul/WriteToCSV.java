@@ -89,7 +89,7 @@ public class WriteToCSV {
 
     private void saveToTmp(UserJsonBean userJsonBean) {
         String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath();//SD卡根目录
-        fileDir += "/vervel";
+        fileDir += "/weigan";
         File cacheFile = new File(fileDir, userJsonBean.getDeviceId());
         if (!cacheFile.exists()) {
             try {
@@ -161,7 +161,7 @@ public class WriteToCSV {
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
         }
         String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath();//SD卡根目录
-        fileDir += "/vervel/csv";
+        fileDir += "/weigan/csv";
         File dirFile = new File(fileDir);
 //        Log.e("MSL", "writeGravA: dirFile.exists() = " + dirFile.exists());
         if (!dirFile.exists()) {
@@ -184,7 +184,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             int x, y, z;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 100);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -211,7 +211,7 @@ public class WriteToCSV {
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
         }
         String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath();//SD卡根目录
-        fileDir += "/vervel/csv";
+        fileDir += "/weigan/csv";
         File dirFile = new File(fileDir);
         if (!dirFile.exists()) dirFile.mkdirs();
 
@@ -229,7 +229,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             int x, y, z;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 100);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -256,7 +256,7 @@ public class WriteToCSV {
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
         }
         String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath();//SD卡根目录
-        fileDir += "/vervel/csv";
+        fileDir += "/weigan/csv";
         File dirFile = new File(fileDir);
         if (!dirFile.exists()) dirFile.mkdirs();
 
@@ -274,7 +274,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             int x, y, z;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 100);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -301,7 +301,7 @@ public class WriteToCSV {
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
         }
         String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath();//SD卡根目录
-        fileDir += "/vervel/csv";
+        fileDir += "/weigan/csv";
         File dirFile = new File(fileDir);
         if (!dirFile.exists()) dirFile.mkdirs();
 
@@ -319,7 +319,7 @@ public class WriteToCSV {
         for (int i = 0; i < list.size(); i++) {
             String time;
             long pressure;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 100);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
@@ -344,7 +344,7 @@ public class WriteToCSV {
             Log.e("SD卡管理：", "SD卡不存在，请加载SD卡");
         }
         String fileDir = Environment.getExternalStorageDirectory().getAbsolutePath();//SD卡根目录
-        fileDir += "/vervel/csv";
+        fileDir += "/weigan/csv";
         File dirFile = new File(fileDir);
         if (!dirFile.exists()) dirFile.mkdirs();
 
@@ -363,7 +363,7 @@ public class WriteToCSV {
             String time;
             int pulse;
             int trustLevel;
-            time = DateUtils.getDateToString(list.get(i).getTime() * 10);
+            time = DateUtils.getDateToString(list.get(i).getTime() * 100);
             if (time.length() != "2017-04-26 11:17:17".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;

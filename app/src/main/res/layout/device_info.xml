@@ -94,6 +94,7 @@
         android:orientation="horizontal"
         >
         <TextView
+            android:visibility="gone"
             android:layout_width="0dp"
             android:layout_weight="4"
             android:layout_height="wrap_content"
@@ -101,6 +102,7 @@
             android:textColor="@color/textColorPrimary"
             />
         <TextView
+            android:visibility="gone"
             android:id="@+id/sensor_freq_info"
             android:layout_width="0dp"
             android:layout_weight="3"

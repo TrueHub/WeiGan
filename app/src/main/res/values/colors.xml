@@ -9,7 +9,7 @@
     <color name="colorGreenLess">#8bc34b</color>
     <color name="colorGray">#77000000</color>
 
-    <color name="load_red">@color/colorAccent</color>
+    <color name="yellow_">@color/colorAccent</color>
 
     <color name="load_purple">#935fe7</color>
 

@@ -21,7 +21,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
-
 import com.youyi.weigan.beans.AngV;
 import com.youyi.weigan.beans.DeviceStatusBean;
 import com.youyi.weigan.beans.GravA;
@@ -41,6 +40,16 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_HEART_RATE_HIS;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_ANGV;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_GRAV_HIS;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_MAG;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_PRESSURE;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_PULSE;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_TIME;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SET_SENSOR_FREQ;
+import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SET_TIME;
+import static com.youyi.weigan.utils.DateUtils.currentTimeSec;
 
 /**
  * Created by Dell on 2017-4-16.
@@ -48,7 +57,7 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class GATTService extends Service {
 
-    public static final String DEVICE_ID = ConstantPool.DEVICEID_4;
+    public static String DEVICE_ID = ConstantPool.DEVICEID_4;
     private BluetoothAdapter mBluetoothAdapter;
     private LeScanCallback_LOLLIPOP mScanCallBack_lollipop;//5.0以上
     private LeScanCallback_JELLY_BEAN mScanCallBack_jelly;//4.3以上
@@ -107,12 +116,12 @@ public class GATTService extends Service {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {//5.0以上
 //            if (mScanCallBack_lollipop == null)
-                mScanCallBack_lollipop = new LeScanCallback_LOLLIPOP();
+            mScanCallBack_lollipop = new LeScanCallback_LOLLIPOP();
             mBluetoothScanner = mBluetoothAdapter.getBluetoothLeScanner();
             mBluetoothScanner.startScan(mScanCallBack_lollipop);
-        } else  {//4.3 ~ 5.0
+        } else {//4.3 ~ 5.0
 //            if (mScanCallBack_lollipop == null)
-                mScanCallBack_jelly = new LeScanCallback_JELLY_BEAN();
+            mScanCallBack_jelly = new LeScanCallback_JELLY_BEAN();
             mBluetoothAdapter.startLeScan(mScanCallBack_jelly);
 
         }
@@ -342,6 +351,7 @@ public class GATTService extends Service {
     public void connectedDevice(Event_BleDevice event_bleDevice) {
         if (event_bleDevice.getFrom() == Event_BleDevice.From.Gatt) return;
         mTarget = event_bleDevice.getDevice();
+        DEVICE_ID = mTarget.getName();
         connect();
     }
 
@@ -360,17 +370,18 @@ public class GATTService extends Service {
         }
     }
 
-/**
- * _________________________________________________________________________________________________________
- */
+    /**
+     * _________________________________________________________________________________________________________
+     */
 
     public void readData(byte[] data) throws NullPointerException {
-        if (data[2] == ConstantPool.INSTRUCT_SET_TIME) {//返回：设定时间成功
+        int length = DataUtils.byte2Int(data[1]);//设备返回的数据长度
+        if (data[2] == INSTRUCT_SET_TIME) {//返回：设定时间成功
             if (data[3] == (byte) 0x01) {
                 EventUtil.post("SET_TIME_SUCCESS!");
 //                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
             }
-        } else if (data[2] == ConstantPool.INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte) 0x06) {
+        } else if (data[2] == INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte) 0x06) {
             //返回各传感器的采样频率
             SensorFreq sensorFreq = new SensorFreq();
             sensorFreq.setGravFreq(DataUtils.Byte2Int(data[3]));
@@ -380,87 +391,114 @@ public class GATTService extends Service {
             sensorFreq.setType(SensorFreq.Type.comm2Activity);
             EventUtil.post(sensorFreq);
 
-        } else if (data[2] == ConstantPool.INSTRUCT_SEARCH_PULSE && data[3] == (byte) 0x01) {
+        } else if (data[2] == INSTRUCT_SEARCH_PULSE && data[1] == (byte) 0x02) {
             EventUtil.post("开关实时心率成功");
 
-        } else {
-            int length = DataUtils.byte2Int(data[1]);//设备返回的数据长度
+        } else if (data[2] == INSTRUCT_SEARCH_TIME) {
+            int timeInt = getTimeInt(data);
+            byte[] datas = new byte[length - 6];
+            System.arraycopy(data, 7, datas, 0, datas.length);
 
-            byte[] timeBytes = new byte[4];//时间数组
-            System.arraycopy(data, 3, timeBytes, 0, timeBytes.length);
-            int timeInt = DataUtils.bytes2IntUnsigned(timeBytes);//这里的timeInt是100ms级别的
-//            Log.i("MSL", "readData: " + timeInt +","+ System.currentTimeMillis() / 10);
+            DeviceStatusBean deviceStatusBean = new DeviceStatusBean();
+            deviceStatusBean.setTime(timeInt);
+            deviceStatusBean.setDeviceElec(datas[0]);
+            EventUtil.post(deviceStatusBean);
+            if (!needSetTime(timeInt)) {
+                EventUtil.post("设备与本地时间无误差");
+            } else {
+                Log.i("MSL", "readData: set time");
+                writeTime();
+            }
+        } else if (data[2] == INSTRUCT_HEART_RATE_HIS) {
+            int timeInt = getTimeInt(data);
+            byte[] datas = new byte[length - 6];
+            System.arraycopy(data, 7, datas, 0, datas.length);
 
-            byte[] datas = null;//除去数据长度、指令、时间 之后的数组
-            if (length > 6) {
+            Pulse pulse = new Pulse();
+            pulse.setTime(timeInt);
+            pulse.setPulse(DataUtils.byte2Int(datas[0]));
+            pulse.setTrustLevel(DataUtils.byte2Int(datas[1]));
+            EventUtil.post(pulse);
+        } else if (data[2] == INSTRUCT_SEARCH_GRAV_HIS) {
+            GravA mGravA = new GravA();
+            if (data[1] == 0x0C) {
+
+                int timeInt = getTimeInt(data);
+                byte[] datas = new byte[length - 6];
+                System.arraycopy(data, 7, datas, 0, datas.length);
+                mGravA.setTime(timeInt);
+                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            } else if (data[1] == 0x08) {
+                byte[] datas = new byte[length - 2];
+                System.arraycopy(data, 3, datas, 0, datas.length);
+                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            }
+
+            EventUtil.post(mGravA);
+        } else if (data[2] == INSTRUCT_SEARCH_ANGV) {
+            AngV angV = new AngV();
+            byte[] datas;
+            if (data[1] == 0x0C) {
+
+                int timeInt = getTimeInt(data);
                 datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
+                angV.setTime(timeInt);
+            } else {
+                datas = new byte[length - 2];
+                System.arraycopy(data, 3, datas, 0, datas.length);
             }
+            angV.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+            angV.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+            angV.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            EventUtil.post(angV);
+        } else if (data[2] == INSTRUCT_SEARCH_MAG) {
+            Mag mag = new Mag();
+            byte[] datas;
+            if (data[1] == 0x0C) {
 
-            if (datas == null) return;
-            switch (data[2]) {
-                case ConstantPool.INSTRUCT_SEARCH_TIME://返回：查询设备状态
-                    DeviceStatusBean deviceStatusBean = new DeviceStatusBean();
-                    deviceStatusBean.setTime(timeInt);
-                    deviceStatusBean.setDeviceElec(datas[0]);
-                    EventUtil.post(deviceStatusBean);
-                    if (!needSetTime(timeInt)) {
-                        EventUtil.post("设备与本地时间无误差");
-                    } else {
-                        Log.i("MSL", "readData: set time");
-                        writeTime();
-                    }
-                    break;
-
-                case ConstantPool.INSTRUCT_HIS://返回：心率数值
-                    Pulse pulse = new Pulse();
-                    pulse.setTime(timeInt);
-                    pulse.setPulse(DataUtils.byte2Int(datas[0]));
-                    pulse.setTrustLevel(DataUtils.byte2Int(datas[1]));
-                    EventUtil.post(pulse);
-                    break;
-
-                case ConstantPool.INSTRUCT_SEARCH_GRAV_HIS://返回：查询重力加速度历史
-                    GravA mGravA = new GravA();
-                    mGravA.setTime(timeInt);
-                    mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                    mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                    mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
-                    EventUtil.post(mGravA);
-                    break;
-
-                case ConstantPool.INSTRUCT_SEARCH_ANGV://返回：查询角速度历史
-                    AngV angV = new AngV();
-                    angV.setTime(timeInt);
-                    angV.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                    angV.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                    angV.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
-                    EventUtil.post(angV);
-                    break;
-
-                case ConstantPool.INSTRUCT_SEARCH_MAG://返回：查询地磁历史
-                    Mag mag = new Mag();
-                    mag.setTime(timeInt);
-                    mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                    mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                    mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
-                    EventUtil.post(mag);
-                    break;
-
-                case ConstantPool.INSTRUCT_SEARCH_PRESSURE://返回：查询气压历史
-                    Pressure pressure = new Pressure();
-                    pressure.setTime(timeInt);
-                    byte[] pressureValue = new byte[4];//时间数组
-                    System.arraycopy(datas, 0, pressureValue, 0, 4);
-                    pressure.setIntensityOfPressure(DataUtils.bytes2Long(pressureValue));
-                    EventUtil.post(pressure);
-                    break;
+                int timeInt = getTimeInt(data);
+                datas = new byte[length - 6];
+                System.arraycopy(data, 7, datas, 0, datas.length);
+                mag.setTime(timeInt);
+            } else {
+                datas = new byte[length - 2];
+                System.arraycopy(data, 3, datas, 0, datas.length);
             }
+            mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+            mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+            mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            EventUtil.post(mag);
+            Log.i("MSL", "readData: mag" + mag.getTime());
+        } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {
+            Pressure pressure = new Pressure();
+            byte[] datas;
+            if (data[1] == 0x0A) {
+                int timeInt = getTimeInt(data);
+                datas = new byte[length - 6];
+                System.arraycopy(data, 7, datas, 0, datas.length);
+                pressure.setTime(timeInt);
+            }else {
+                datas = new byte[length - 2];
+                System.arraycopy(data, 3, datas, 0, datas.length);
+            }
+            pressure.setIntensityOfPressure(DataUtils.bytes2Long(datas));
+            EventUtil.post(pressure);
         }
     }
 
+    private int getTimeInt(byte[] data) {
+        byte[] timeBytes = new byte[4];//时间数组
+        System.arraycopy(data, 3, timeBytes, 0, timeBytes.length);
+        return DataUtils.bytes2IntUnsigned(timeBytes);//这里的timeInt是100ms级别的
+    }
+
     private void writeTime() {
-        byte[] currentTimeBytes = DataUtils.int2Bytes((int) (System.currentTimeMillis() / 1000));//需要发送的时间戳的长度
+        byte[] currentTimeBytes = DataUtils.int2Bytes(currentTimeSec());//需要发送的时间戳的长度
 //        Log.d("MSL", "writeTime: " + currentTimeBytes.length + "," + currentTimeBytes[0] + "," + currentTimeBytes[1] + "," + currentTimeBytes[2] + "," + currentTimeBytes[3]);
         byte[] setTimeBytes = new byte[8];//整条指令的长度
         setTimeBytes[0] = ConstantPool.HEAD;

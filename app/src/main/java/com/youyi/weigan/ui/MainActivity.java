@@ -48,12 +48,7 @@ import android.widget.Toast;
 
 import com.youyi.weigan.R;
 import com.youyi.weigan.adapter.DeviceListAdapter;
-import com.youyi.weigan.beans.AngV;
 import com.youyi.weigan.beans.DeviceStatusBean;
-import com.youyi.weigan.beans.GravA;
-import com.youyi.weigan.beans.Mag;
-import com.youyi.weigan.beans.Pressure;
-import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.SensorFreq;
 import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
@@ -73,7 +68,6 @@ import com.youyi.weigan.view.BattaryView;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
 import java.util.ArrayList;
 
 import static android.view.View.GONE;
@@ -83,7 +77,7 @@ import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.SEARCH_DEVICE_STATUE;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
 
     private FrameLayout frame_content;
     private CoordinatorLayout main_content;
@@ -125,26 +119,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Toast toast;
     private boolean isStarted;
     private Intent gattService;
-    ArrayList<Pulse> pulseArrayList = new ArrayList<>();
-    ArrayList<Mag> magArrayList = new ArrayList<>();
-    ArrayList<Pressure> pressureArrayList = new ArrayList<>();
-    ArrayList<GravA> gravAArrayList = new ArrayList<>();
-    ArrayList<AngV> angVList = new ArrayList<>();
-    ArrayList<Pulse> pulseList = new ArrayList<>();
-    ArrayList<Mag> magList = new ArrayList<>();
-    ArrayList<Pressure> pressureList = new ArrayList<>();
-    ArrayList<GravA> gravAList = new ArrayList<>();
-    ArrayList<AngV> angVArrayList = new ArrayList<>();
     private UserBean userBean;
     private Intent writeServiceIntent;
-    private final int LIST_SIZE = 1000;
-    private final int SIZE_2 = 5;
-    private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private static boolean isWifiState;
     private SensorFreq sensorFreq;//带有传感器频率设置的bean类
     private DeviceListAdapter adapter;
     private AlertDialog devicelistDialog;
     private RecyclerView recyclerView;
+    private int[] freqValues = new int[4];
+    private boolean getDataEnd ;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -169,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if (WIFIUtils.isWifiType(this)) {
             isWifiState = true;
-            controlDeviceImp.showToast("当前连接：" + WIFIUtils.getWifiId((WifiManager) getSystemService(Context.WIFI_SERVICE)));
+            controlDeviceImp.showToast("当前连接：" + WIFIUtils.getWifiId((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE)));
         }
 
         setActionBar();
@@ -199,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //收集数据
                 case R.id.navigation_collect_data:
                     nvg_collect_data = root1;
+                    getDataEnd = false ;
                     break;
                 //上传本地数据
                 case R.id.navigation_upload_data:
@@ -403,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         startWriteService();
 
-                        getDataEnd = false;
+                        EventUtil.post(new Comm2Frags("GET_DATA_START", Comm2Frags.Type.FromActivity));
 
                         EventUtil.post(Comm2GATT.TYPE.SEARCH_HIS);
                         break;
@@ -446,10 +431,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void changeSwitchState() {
-
-    }
-
     private void initView() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         frame_content = (FrameLayout) findViewById(R.id.frame_content);
@@ -471,7 +452,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ic_battery = (BattaryView) toolbar.findViewById(R.id.ic_battery_toolbar);
         tv_deviceId = (TextView) toolbar.findViewById(R.id.tv_deviceId_toolbar);
 
-        ic_battery.setOnClickListener(this);
         device_info = (LinearLayout) findViewById(R.id.device_info);
         info_tv_chk_time = (TextView) device_info.findViewById(R.id.tv_last_check_time_info);
         info_tv_battery = (TextView) device_info.findViewById(R.id.tv_battery_info);
@@ -479,13 +459,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         info_tv_vib_high = (TextView) device_info.findViewById(R.id.tv_vib_high_info);
         info_tv_sensor_freq = (TextView) device_info.findViewById(R.id.sensor_freq_info);
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayout);
-        collapsingToolbarLayout.setOnClickListener(this);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-        }
     }
 
     /**
@@ -510,6 +483,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (event_bleDevice.getFrom() == Event_BleDevice.From.Activity) {
             devicelistDialog.dismiss();
             devicelistDialog = null;
+            adapter = null;
+            recyclerView = null;
         } else if (event_bleDevice.getFrom() == Event_BleDevice.From.Gatt) {
             BluetoothDevice bluetoothDevice = event_bleDevice.getDevice();
             if (btDeviceList.contains(bluetoothDevice)) return;
@@ -555,16 +530,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         info_tv_sensor_freq.setText(String.valueOf(simplingFreq));
         info_tv_vib_low.setText(String.valueOf(pulseAbnomal_min));
         info_tv_vib_high.setText(String.valueOf(pulseAbnomal_max));
-        info_tv_chk_time.setText(DateUtils.getDateToString((long) time[0] * 1000));
+        info_tv_chk_time.setText(DateUtils.getDateToString((long) time[0] * 100));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getDataOver(EventNotification eventNotification) {
         switch (eventNotification.getType()) {
             case "HIS_DATA":
-                getDataEnd = eventNotification.isGetOver();
+                getDataEnd = true;
+                EventUtil.post(new Comm2Frags("GET_DATA_END", Comm2Frags.Type.FromActivity));
                 break;
-            case GATTService.DEVICE_ID:
+
+            case "NET STATE":
+                startWriteService();
+                break;
+            default:
                 if (eventNotification.isGetOver()) {
                     controlDeviceImp.showToast("连接" + eventNotification.getType() + "成功");
                     tv_deviceId.setText(eventNotification.getType());
@@ -587,97 +567,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     initAll();
                 }
                 break;
-            case "NET STATE":
-                startWriteService();
-                break;
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public synchronized void getGATTCallback(Pulse pulse) {
-        //心率历史
-        pulseArrayList.add(pulse);
-        //添加到另一个list，用于传到searchResultActivity中本地显示最近的数据
-        pulseList.add(pulse);
-        if (pulseList.size() > SIZE_2) {
-            pulseList.remove(0);
-        }
-
-        if (pulseArrayList.size() == LIST_SIZE || getDataEnd) {
-
-            ArrayList<Pulse> list = new ArrayList<>();
-            list.addAll(pulseArrayList);
-            userBean.getPulseArrayList().addAll(list);
-            pulseArrayList.clear();
-//            Log.i("MSL", "getGATTCallback: " + userBean.getPulseArrayList().size() + "," + pulseArrayList.size() + "," +list.size());
-        }
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public synchronized void getGATTCallback(GravA gravA) {
-        //心率历史
-        gravAArrayList.add(gravA);
-        gravAList.add(gravA);
-        if (gravAList.size() > SIZE_2) {
-            gravAList.remove(0);
-        }
-        if (gravAArrayList.size() == LIST_SIZE || getDataEnd) {
-            ArrayList<GravA> list = new ArrayList<>();
-            list.addAll(gravAArrayList);
-            userBean.getGravAArrayList().addAll(list);
-            gravAArrayList.clear();
-//            Log.i("MSL", "getGATTCallback: " + userBean.getGravAArrayList().size() + "," + gravAArrayList.size() + "," +list.size());
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public synchronized void getGATTCallback(AngV angV) {
-        //心率历史
-        angVArrayList.add(angV);
-        angVList.add(angV);
-        if (angVList.size() > SIZE_2) {
-            angVList.remove(0);
-        }
-        if (angVArrayList.size() == LIST_SIZE || getDataEnd) {
-            ArrayList<AngV> list = new ArrayList<>();
-            list.addAll(angVArrayList);
-            userBean.getAngVArrayList().addAll(list);
-            angVArrayList.clear();
-//            Log.i("MSL", "getGATTCallback: " + userBean.getAngVArrayList().size() + "," + angVArrayList.size() + "," +list.size());
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public synchronized void getGATTCallback(Mag mag) {
-        //心率历史
-        magArrayList.add(mag);
-        magList.add(mag);
-        if (magList.size() > SIZE_2) {
-            magList.remove(0);
-        }
-        if (magArrayList.size() == LIST_SIZE || getDataEnd) {
-            ArrayList<Mag> list = new ArrayList<>();
-            list.addAll(magArrayList);
-            userBean.getMagArrayList().addAll(list);
-            magArrayList.clear();
-//            Log.i("MSL", "getBluetoothCallback: " + userBean.getPulseArrayList().size() + "," + magArrayList.size() + "," +list.size());
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public synchronized void getGATTCallback(Pressure pressure) {
-        //心率历史
-        pressureArrayList.add(pressure);
-        pressureList.add(pressure);
-        if (pressureList.size() > SIZE_2) {
-            pressureList.remove(0);
-        }
-        if (pressureArrayList.size() == LIST_SIZE || getDataEnd) {
-            ArrayList<Pressure> list = new ArrayList<>();
-            list.addAll(pressureArrayList);
-            userBean.getPressureArrayList().addAll(list);
-            pressureArrayList.clear();
-//            Log.i("MSL", "getGATTCallback: " + userBean.getPulseArrayList().size() + "," + pressureArrayList.size() + "," +list.size());
+    public void sensorSetting(SensorFreq sensorFreq) {
+        if (sensorFreq.getType() == SensorFreq.Type.comm2Activity) {
+            freqValues[0] = sensorFreq.getGravFreq();
+            freqValues[1] = sensorFreq.getAngFreq();
+            freqValues[2] = sensorFreq.getMagFreq();
+            freqValues[3] = sensorFreq.getPressureFreq();
         }
     }
 
@@ -758,8 +658,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void startWriteService() {
         if (isWifiState) {
             writeServiceIntent.putExtra("net", "wifi");
-            writeServiceIntent.putExtra("wifiName", WIFIUtils.getWifiId((WifiManager) getSystemService(Context.WIFI_SERVICE)));
-            writeServiceIntent.putExtra("wifiMac", WIFIUtils.getWifiMAC((WifiManager) getSystemService(Context.WIFI_SERVICE)));
+            writeServiceIntent.putExtra("wifiName", WIFIUtils.getWifiId((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE)));
+            writeServiceIntent.putExtra("wifiMac", WIFIUtils.getWifiMAC((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE)));
         } else {
             writeServiceIntent.putExtra("net", "mobile or null");
         }
@@ -799,7 +699,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /******************************seekBar的listener事件******************************************** */
 
-    private class NetWorkStateChangedReceiver extends BroadcastReceiver {
+    public static class NetWorkStateChangedReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -884,12 +784,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Navigation Menu中 Sensor Setting 点击后的dialog界面
     private void showDialogForSeekBar(Activity activity) {
         sensorFreq = new SensorFreq();
+        sensorFreq.setType(SensorFreq.Type.comm2Gatt);
         LinearLayout ll = (LinearLayout) getLayoutInflater().inflate
                 (R.layout.sensor_setting, (ViewGroup) findViewById(R.id.sensor_setting_ll));
         sb_grav = (SeekBar) ll.findViewById(R.id.ss_seek_grav);
         sb_ang = (SeekBar) ll.findViewById(R.id.ss_seek_ang);
         sb_mag = (SeekBar) ll.findViewById(R.id.ss_seek_mag);
         sb_pressure = (SeekBar) ll.findViewById(R.id.ss_seek_pressure);
+
+        sb_grav.setProgress(freqValues[0]);
+        sb_ang.setProgress(freqValues[1]);
+        sb_mag.setProgress(freqValues[2]);
+        sb_pressure.setProgress(freqValues[3]);
 
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle("设定采样频率")
@@ -903,6 +809,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             EventUtil.post(sensorFreq);
                             Log.i("MSL", "onClick: \n" + sensorFreq.getGravFreq() + "\n" + sensorFreq.getAngFreq()
                                     + "\n" + sensorFreq.getMagFreq() + "\n" + sensorFreq.getPressureFreq());
+                            dialog = null ;
                         }
                     }
                 })

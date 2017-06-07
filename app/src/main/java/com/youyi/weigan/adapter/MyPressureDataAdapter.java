@@ -13,6 +13,7 @@ import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.utils.DateUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by user on 2017/4/7.
@@ -46,17 +47,15 @@ public class MyPressureDataAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (convertView == null) {
-            convertView = layoutInflater.inflate(R.layout.item_result, parent, false);
+            convertView = layoutInflater.inflate(R.layout.item_result_pressure, parent, false);
             viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         Pressure obj = list.get(position);
-        viewHolder.tv__result_time.setText(DateUtils.getDateToString(obj.getTime() * 1000));
+        viewHolder.tv__result_time.setText(DateUtils.getDateToString(obj.getTime() * 100));
         viewHolder.tv__result_x.setText(String.valueOf(obj.getIntensityOfPressure()));
-        viewHolder.tv__result_y.setVisibility(View.GONE);
-        viewHolder.tv__result_z.setVisibility(View.GONE);
         return convertView;
     }
 
@@ -64,15 +63,11 @@ public class MyPressureDataAdapter extends BaseAdapter {
         private View rootView;
         private TextView tv__result_time;
         private TextView tv__result_x;
-        private TextView tv__result_y;
-        private TextView tv__result_z;
 
         private ViewHolder(View rootView) {
             this.rootView = rootView;
             this.tv__result_time = (TextView) rootView.findViewById(R.id.tv__result_time);
             this.tv__result_x = (TextView) rootView.findViewById(R.id.tv__result_x);
-            this.tv__result_y = (TextView) rootView.findViewById(R.id.tv__result_y);
-            this.tv__result_z = (TextView) rootView.findViewById(R.id.tv__result_z);
         }
 
     }

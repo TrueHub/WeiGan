@@ -13,6 +13,7 @@ import com.youyi.weigan.beans.GravA;
 import com.youyi.weigan.utils.DateUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static android.content.ContentValues.TAG;
 
@@ -55,8 +56,7 @@ public class MyGravADataAdapter extends BaseAdapter {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         GravA obj = list.get(position);
-        Log.e(TAG, "getView: " + obj.getTime());
-        viewHolder.tv__result_time.setText(DateUtils.getDateToString(obj.getTime() * 1000));
+        viewHolder.tv__result_time.setText(DateUtils.getDateToString(obj.getTime() * 100));
         viewHolder.tv__result_x.setText(String.valueOf(obj.getVelX()));
         viewHolder.tv__result_y.setText(String.valueOf(obj.getVelY()));
         viewHolder.tv__result_z.setText(String.valueOf(obj.getVelZ()));

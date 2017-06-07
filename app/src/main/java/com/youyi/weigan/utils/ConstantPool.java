@@ -1,10 +1,5 @@
 package com.youyi.weigan.utils;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
-import com.youyi.weigan.R;
-
 /**
  * Created by user on 2017/4/6.
  * 有关设备的常量池
@@ -28,7 +23,7 @@ public class ConstantPool {
     public static final byte INSTRUCT_SET_TIME = (byte)0x01;
     public static final byte INSTRUCT_REAL_SENSOR_DATA = (byte)0x02;
     public static final byte INSTRUCT_SEARCH_PULSE = (byte)0x05;
-    public static final byte INSTRUCT_HIS = (byte)0x03;
+    public static final byte INSTRUCT_HEART_RATE_HIS = (byte)0x03;
     public static final byte INSTRUCT_SEARCH_GRAV_HIS = (byte)0x04;
     public static final byte INSTRUCT_SET_SENSOR_FREQ = (byte)0x04;
     public static final byte INSTRUCT_SEARCH_ANGV = (byte)0x05;
@@ -58,11 +53,11 @@ public class ConstantPool {
 
     /** 接收历史数据   增量 */
     public static final byte[] SEARCH_HIS = new byte[]
-            {HEAD,(byte)0x03, INSTRUCT_HIS,(byte)0x01 , END};
+            {HEAD,(byte)0x03, INSTRUCT_HEART_RATE_HIS,(byte)0x01 , END};
 
     /** 接收历史数据   全部 */
     public static final byte[] SEARCH_HIS_ALL = new byte[]
-            {HEAD,(byte)0x03, INSTRUCT_HIS,(byte)0x00 , END};
+            {HEAD,(byte)0x03, INSTRUCT_HEART_RATE_HIS,(byte)0x00 , END};
 
     /** 设定采样频率 */
     public static final byte[] SET_SENSOR_FREQ = new byte[]{
