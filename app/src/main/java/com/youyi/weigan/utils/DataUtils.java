@@ -15,10 +15,7 @@ public class DataUtils {
     }
 
     public static int byte2Int(byte byteNum) {
-        int num = 0;
-            num <<= 8;
-            num |= (byteNum & 0xff);
-        return num;
+        return byteNum;
     }
 
     public static int bytes2IntUnsigned(byte[] byteNum) {
@@ -30,13 +27,47 @@ public class DataUtils {
         return num;
     }
 
-    public static int bytes2IntSigned(byte[] byteNum) {
+    public static int bytes2IntSignedGravA(byte[] byteNum) {
         int num = 0;
         for (int ix = 0; ix < byteNum.length; ++ix) {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }
-        if (num > 32767) num -= 65536;
+        if (num >= 2048 ) num -= 4096;
+        /*else if (num >4096 && num <=8192 ) num -= 8192;
+        else if (num > 8912 && num<=16384) num -= 16384;
+        else if (num > 16384 && num<=32768) num -= 32768;
+        else if (num > 32768) num -= 65536;*/
+        return num;
+    }
+
+    public static int bytes2IntSignedAngV(byte[] byteNum) {
+        int num = 0;
+        for (int ix = 0; ix < byteNum.length; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
+        if (num >= 32768) num -= 65536;
+        return num;
+    }
+
+    public static int bytes2IntSignedMagXY(byte[] byteNum) {
+        int num = 0;
+        for (int ix = 0; ix < byteNum.length; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
+        if (num >= 4096 ) num -= 8192;
+        return num;
+    }
+
+    public static int bytes2IntSignedMagZ(byte[] byteNum) {
+        int num = 0;
+        for (int ix = 0; ix < byteNum.length; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
+        if (num >= 8912 ) num -= 16384;
         return num;
     }
 
@@ -98,9 +129,34 @@ public class DataUtils {
         return hs;
     }
 
+
+    public static int byteArrayToInt(byte[] bytes) {
+        int value= 0;
+        //由高位到低位
+        for (int i = 0; i < bytes.length; i++) {
+            int shift= (4 - 1 - i) * 8;
+            value +=(bytes[i] & 0x000000FF) << shift;//往高位游
+        }
+        return value;
+    }
+
+
+    public static int byte2Int(byte[] byteNum) {
+        short s = 0;
+        short s0 = (short) (byteNum[0] & 0xff);// 最低位
+        short s1 = (short) (byteNum[1] & 0xff);
+        s1 <<= 8;
+        s = (short) (s0 | s1);
+        return s;
+    }
+
     public static void main(String[] args) {
 
-        long time = System.currentTimeMillis();
+        byte[] b = new byte[]{(byte)0x03, (byte)0xfe};
+        System.out.println(bytes2IntSignedGravA(b));
+        System.out.println(byte2Int(b));
+
+        /*long time = System.currentTimeMillis();
         System.out.println(time);
         byte[] long2Bytes1 = long2Bytes(time);
         for (int ix = 0; ix < long2Bytes1.length; ++ix) {
@@ -147,7 +203,7 @@ public class DataUtils {
         byte byteNum = (byte)0x45;
         System.out.print("byte为："+byteNum);
         int byte2Int = byte2Int(byteNum);
-        System.out.println("byte转行成int: " + byte2Int);
+        System.out.println("byte转行成int: " + byte2Int);*/
     }
 
 }

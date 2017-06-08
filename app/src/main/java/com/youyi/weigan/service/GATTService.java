@@ -204,7 +204,7 @@ public class GATTService extends Service {
                 //设备断开
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
                 Log.i("MSL", "Disconnected from GATT server");
-                mGatt.close();
+                mGatt.disconnect();
                 stopSelf();
             }
         }
@@ -338,6 +338,7 @@ public class GATTService extends Service {
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
 //                Log.i("MSL", "Disconnected from GATT server");
                 mGatt.disconnect();
+                stopSelf();
                 break;
             case CLEAR_FLASH:
                 Log.i("MSL", "指令：清除设备的flash缓存");
@@ -427,15 +428,15 @@ public class GATTService extends Service {
                 byte[] datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
                 mGravA.setTime(timeInt);
-                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+                mGravA.setVelX(DataUtils.bytes2IntSignedGravA(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSignedGravA(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSignedGravA(new byte[]{datas[4], datas[5]}));
             } else if (data[1] == 0x08) {
                 byte[] datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
-                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+                mGravA.setVelX(DataUtils.bytes2IntSignedGravA(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSignedGravA(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSignedGravA(new byte[]{datas[4], datas[5]}));
             }
 
             EventUtil.post(mGravA);
@@ -452,9 +453,9 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            angV.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-            angV.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-            angV.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            angV.setVelX(DataUtils.bytes2IntSignedAngV(new byte[]{datas[0], datas[1]}));
+            angV.setVelY(DataUtils.bytes2IntSignedAngV(new byte[]{datas[2], datas[3]}));
+            angV.setVelZ(DataUtils.bytes2IntSignedAngV(new byte[]{datas[4], datas[5]}));
             EventUtil.post(angV);
         } else if (data[2] == INSTRUCT_SEARCH_MAG) {
             Mag mag = new Mag();
@@ -469,9 +470,9 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-            mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-            mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            mag.setStrengthX(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[0], datas[1]}));
+            mag.setStrengthY(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[2], datas[3]}));
+            mag.setStrengthZ(DataUtils.bytes2IntSignedMagZ(new byte[]{datas[4], datas[5]}));
             EventUtil.post(mag);
             Log.i("MSL", "readData: mag" + mag.getTime());
         } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {

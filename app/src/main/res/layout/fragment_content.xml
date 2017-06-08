@@ -173,6 +173,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="3"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="time"
                         />
 
@@ -181,6 +182,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="x"
                         />
 
@@ -189,6 +191,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="y"
                         />
 
@@ -197,6 +200,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="z"
                         />
                 </LinearLayout>
@@ -243,6 +247,7 @@
                         android:layout_weight="3"
                         android:gravity="center"
                         android:text="time"
+                        android:textColor="@color/textColorPrimary"
                         />
 
                     <TextView
@@ -251,12 +256,14 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="x"
+                        android:textColor="@color/textColorPrimary"
                         />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:textColor="@color/textColorPrimary"
                         android:gravity="center"
                         android:text="y"
                         />
@@ -266,6 +273,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="z"
                         />
                 </LinearLayout>
@@ -311,6 +319,7 @@
                         android:layout_weight="3"
                         android:gravity="center"
                         android:text="time"
+                        android:textColor="@color/textColorPrimary"
                         />
 
                     <TextView
@@ -319,6 +328,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="x"
+                        android:textColor="@color/textColorPrimary"
                         />
 
                     <TextView
@@ -326,6 +336,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="y"
                         />
 
@@ -335,6 +346,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="z"
+                        android:textColor="@color/textColorPrimary"
                         />
                 </LinearLayout>
 
@@ -378,6 +390,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
+                        android:textColor="@color/textColorPrimary"
                         android:text="time"
                         />
 
@@ -387,6 +400,7 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         android:text="x"
+                        android:textColor="@color/textColorPrimary"
                         />
 
                 </LinearLayout>

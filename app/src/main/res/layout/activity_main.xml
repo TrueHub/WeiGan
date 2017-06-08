@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        !--AppBar 布局属性:LinearLayout 默认子元素垂直排列-->
+        <!--AppBar 布局属性:LinearLayout 默认子元素垂直排列-->
 
         <android.support.design.widget.AppBarLayout
             android:id="@+id/appbar"
@@ -30,7 +30,7 @@
                 android:layout_height="match_parent"
                 android:minHeight="?android:attr/actionBarSize"
                 app:contentScrim="?attr/colorPrimary"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed|enterAlwaysCollapsed">
+                app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
                 <include
                     android:id="@+id/device_info"

@@ -13,6 +13,7 @@
         android:layout_weight="1"
         android:gravity="center"
         android:text="time"
+        android:textColor="@color/textColorPrimary"
         />
 
     <TextView
@@ -22,6 +23,7 @@
         android:layout_weight="1"
         android:gravity="center"
         android:text="x"
+        android:textColor="@color/textColorPrimary"
         />
 
 </LinearLayout>

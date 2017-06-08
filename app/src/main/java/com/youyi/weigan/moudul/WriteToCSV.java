@@ -185,7 +185,7 @@ public class WriteToCSV {
             String time;
             int x, y, z;
             time = DateUtils.getDateToString(list.get(i).getTime() * 100);
-            if (time.length() != "2017-04-26 11:17:17".length()) {
+            if (time.length() != "2017-04-26 11:17:17:100".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
             }
@@ -230,7 +230,7 @@ public class WriteToCSV {
             String time;
             int x, y, z;
             time = DateUtils.getDateToString(list.get(i).getTime() * 100);
-            if (time.length() != "2017-04-26 11:17:17".length()) {
+            if (time.length() != "2017-04-26 11:17:17:100".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
             }
@@ -275,7 +275,7 @@ public class WriteToCSV {
             String time;
             int x, y, z;
             time = DateUtils.getDateToString(list.get(i).getTime() * 100);
-            if (time.length() != "2017-04-26 11:17:17".length()) {
+            if (time.length() != "2017-04-26 11:17:17:100".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
             }
@@ -320,7 +320,7 @@ public class WriteToCSV {
             String time;
             long pressure;
             time = DateUtils.getDateToString(list.get(i).getTime() * 100);
-            if (time.length() != "2017-04-26 11:17:17".length()) {
+            if (time.length() != "2017-04-26 11:17:17:100".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
             }
@@ -364,7 +364,7 @@ public class WriteToCSV {
             int pulse;
             int trustLevel;
             time = DateUtils.getDateToString(list.get(i).getTime() * 100);
-            if (time.length() != "2017-04-26 11:17:17".length()) {
+            if (time.length() != "2017-04-26 11:17:17:100".length()) {
                 Log.e("MSL", "writeAngV: " + time);
                 continue;
             }

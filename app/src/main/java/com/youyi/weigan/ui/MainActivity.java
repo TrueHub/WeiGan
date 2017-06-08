@@ -68,6 +68,7 @@ import com.youyi.weigan.view.BattaryView;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.ArrayList;
 
 import static android.view.View.GONE;
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private AlertDialog devicelistDialog;
     private RecyclerView recyclerView;
     private int[] freqValues = new int[4];
-    private boolean getDataEnd ;
+    private boolean getDataEnd;
 
 
     @Override
@@ -183,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 //收集数据
                 case R.id.navigation_collect_data:
                     nvg_collect_data = root1;
-                    getDataEnd = false ;
+                    getDataEnd = false;
                     break;
                 //上传本地数据
                 case R.id.navigation_upload_data:
@@ -671,20 +672,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         switch (seekBar.getId()) {
             case R.id.ss_seek_grav:
+                if (!fromUser) break;
                 if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setGravFreq(progress + 10);
+                sensorFreq.setGravFreq(progress + 1);
                 break;
             case R.id.ss_seek_ang:
+                if (!fromUser) break;
                 if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setAngFreq(progress + 10);
+                sensorFreq.setAngFreq(progress + 1);
                 break;
             case R.id.ss_seek_mag:
+                if (!fromUser) break;
                 if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setMagFreq(progress + 10);
+                sensorFreq.setMagFreq(progress + 1);
                 break;
             case R.id.ss_seek_pressure:
+                if (!fromUser) break;
                 if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setPressureFreq(progress + 10);
+                sensorFreq.setPressureFreq(progress + 1);
                 break;
         }
     }
@@ -806,10 +811,18 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (sensorFreq != null) {
+                            if (sensorFreq.getGravFreq() == 0)
+                                sensorFreq.setGravFreq(freqValues[0]);
+                            if (sensorFreq.getAngFreq() == 0)
+                                sensorFreq.setAngFreq(freqValues[1]);
+                            if (sensorFreq.getMagFreq() == 0)
+                                sensorFreq.setMagFreq(freqValues[2]);
+                            if (sensorFreq.getPressureFreq() == 0)
+                                sensorFreq.setPressureFreq(freqValues[3]);
                             EventUtil.post(sensorFreq);
                             Log.i("MSL", "onClick: \n" + sensorFreq.getGravFreq() + "\n" + sensorFreq.getAngFreq()
                                     + "\n" + sensorFreq.getMagFreq() + "\n" + sensorFreq.getPressureFreq());
-                            dialog = null ;
+                            dialog = null;
                         }
                     }
                 })

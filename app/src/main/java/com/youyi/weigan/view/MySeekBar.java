@@ -148,7 +148,7 @@ public class MySeekBar extends android.support.v7.widget.AppCompatSeekBar {
 
         fm = paint.getFontMetrics();
         //文本的宽度
-        mTitleText = getProgress() + 10 + " ";
+        mTitleText = getProgress() + 1 + " ";
 
         numTextWidth = paint.measureText(mTitleText);
 

@@ -80,6 +80,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onPause();
         if (handler == null || splashRunnable == null) return;
         handler.removeCallbacks(splashRunnable);
+        finish();
     }
 
     @Override
