@@ -28,6 +28,7 @@ import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.PulseBean;
 import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
+import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
 import com.youyi.weigan.utils.StatusUtils;
 import com.youyi.weigan.view.ImgWheelView;
@@ -82,7 +83,10 @@ public class ContentFragment extends Fragment {
     private final int Lie = 4;
     private final int Stairs = 5;
     private final int Elevator = 6;
-
+    private TextView tv_grav;
+    private TextView tv_angV;
+    private TextView tv_mag;
+    private TextView tv_pressure;
 
     public ContentFragment() {
         // Required empty public constructor
@@ -148,6 +152,10 @@ public class ContentFragment extends Fragment {
         lv_ang = (ListView) view.findViewById(R.id.lv_ang);
         lv_mag = (ListView) view.findViewById(R.id.lv_mag);
         lv_pressure = (ListView) view.findViewById(R.id.lv_pressure);
+        tv_grav = (TextView) view.findViewById(R.id.tv_grav);
+        tv_angV = (TextView) view.findViewById(R.id.tv_angV);
+        tv_mag = (TextView) view.findViewById(R.id.tv_mag);
+        tv_pressure = (TextView) view.findViewById(R.id.tv_pressure);
     }
 
     /**
@@ -197,6 +205,7 @@ public class ContentFragment extends Fragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public synchronized void getGATTCallback(GravA gravA) {
         if (gravA.getTime() != 0) {
+            tv_grav.setText("重力加速度:" + DateUtils.getDateToString(gravA.getTime() * 100));
             //心率历史
             gravAArrayList.add(gravA);
 
@@ -224,6 +233,7 @@ public class ContentFragment extends Fragment {
     public synchronized void getGATTCallback(AngV angV) {
         if (angV.getTime() != 0) {
             //心率历史
+            tv_angV.setText("角速度:"+ DateUtils.getDateToString(angV.getTime() * 100));
             angVArrayList.add(angV);
             if (angVArrayList.size() == LIST_SIZE || getDataEnd) {
                 ArrayList<AngV> list = new ArrayList<>();
@@ -275,7 +285,8 @@ public class ContentFragment extends Fragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public synchronized void getGATTCallback(Mag mag) {
         if (mag.getTime() != 0) {
-            //心率历史
+            //地磁历史
+            tv_mag.setText("地磁强度:"+ DateUtils.getDateToString(mag.getTime() * 100));
             magArrayList.add(mag);
 
             if (magArrayList.size() == LIST_SIZE || getDataEnd) {
@@ -302,6 +313,7 @@ public class ContentFragment extends Fragment {
     public synchronized void getGATTCallback(Pressure pressure) {
         if (pressure.getTime() != 0) {
             //心率历史
+            tv_pressure.setText("气压强度:" + DateUtils.getDateToString(pressure.getTime() * 100));
             pressureArrayList.add(pressure);
 
             if (pressureArrayList.size() == LIST_SIZE || getDataEnd) {
@@ -328,7 +340,7 @@ public class ContentFragment extends Fragment {
 
     private void stateByPressure() {
         if (pressureList.size() < SIZE_2) return;
-        StatusUtils.Status state = StatusUtils.getMasterStateByPressure(pressureList,angVList);
+        StatusUtils.Status state = StatusUtils.getMasterStateByPressure(pressureList, angVList);
         switch (state) {
             case Normal:
                 stateByAng();
@@ -361,7 +373,6 @@ public class ContentFragment extends Fragment {
                 break;
             case "DATA_UP_ON":
                 card_status.setVisibility(View.VISIBLE);
-
                 break;
             case "DATA_UP_OFF":
                 tv_status.setText("--");

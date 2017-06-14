@@ -13,10 +13,14 @@ import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.beans.UserJsonBean;
 import com.youyi.weigan.dbUtils.DataBaseContext;
 import com.youyi.weigan.dbUtils.SqliteHelper;
+import com.youyi.weigan.eventbean.Comm2WriteService;
 import com.youyi.weigan.moudul.WriteToCSV;
 import com.youyi.weigan.net.RetrofitItfc;
 import com.youyi.weigan.utils.ConstantPool;
 import com.youyi.weigan.utils.EventUtil;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -57,6 +61,7 @@ public class WriteService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        EventUtil.register(this);
         userBean = UserBean.getInstence();
         Log.i("MSL", "onCreate: write service");
         new Thread() {
@@ -76,6 +81,7 @@ public class WriteService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         String net = intent.getStringExtra("net");
         Log.d("MSL", "onStartCommand: 当前网络：" + net);
         if (net.equals("mobile or null")) {
@@ -98,12 +104,30 @@ public class WriteService extends Service {
             //有网络状况下，重新上传缓存的数据
             if (!isUploading) {
                 isUploading = true;
-                upLoadCache(url);
+
+//                upLoadCache(url);
+
             }
         }
         writeToCSV = new WriteToCSV(this, url);
         return super.onStartCommand(intent, flags, startId);
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        EventUtil.unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void commWithActivity(Comm2WriteService comm2WriteService) {
+        switch (comm2WriteService) {
+            case UpLoadCache:
+                upLoadCache(url);
+                break;
+        }
+    }
+
 
     private void upLoadCache(final String url) {
         //遍历预置的文件夹，如果有文件，就读出来

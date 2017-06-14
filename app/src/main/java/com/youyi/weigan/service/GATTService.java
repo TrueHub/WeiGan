@@ -219,7 +219,7 @@ public class GATTService extends Service {
             serviceList = gatt.getServices();
             if (serviceList != null) {
                 Log.i("MSL", "onServicesDiscovered: " + serviceList);
-                Log.i("MSL", "serviceList NUM ： " + serviceList.size());
+                Log.i("MSL", "serviceList Num ： " + serviceList.size());
                 for (BluetoothGattService bleService : serviceList) {
                     List<BluetoothGattCharacteristic> characteristicList = bleService.getCharacteristics();
                     Log.i("MSL", "扫描到Service: " + bleService.getUuid());

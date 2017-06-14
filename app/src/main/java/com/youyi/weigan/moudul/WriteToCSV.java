@@ -39,6 +39,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by user on 2017/4/12.
+ *
  */
 
 public class WriteToCSV {
@@ -404,5 +405,4 @@ public class WriteToCSV {
             e.printStackTrace();
         }
     }
-
 }

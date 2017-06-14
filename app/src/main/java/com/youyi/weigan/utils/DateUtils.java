@@ -20,15 +20,15 @@ public class DateUtils {
         return sf.format(d);
     }
 
-    /*时间戳转换成字符窜*/
+    /**时间戳转换成字符窜*/
     public static String getDateToString(long time) {
-        time += getStringToDate("2017-1-1 08:00:00:0000", "yyyy-MM-dd HH:mm:ss:SSS");
+        time += getStringToDate("2017-1-1 08:00:00:000", "yyyy-MM-dd HH:mm:ss:SSS");
         sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS", Locale.CHINA);
         Date d = new Date(time);
         return sf.format(d);
     }
 
-    /*将字符串转为时间戳*/
+    /**将字符串转为时间戳*/
     public static long getStringToDate(String time , String pattern) {
         SimpleDateFormat sdf = new SimpleDateFormat(pattern,Locale.CHINA);
         Date date = new Date();
@@ -90,20 +90,14 @@ public class DateUtils {
         return (int) ((c -a) / 1000);
     }
     public static long current_100_TimeMillis(){
-        long a = getStringToDate("2017-1-1 08:00:00:0000" , "yyyy-MM-dd HH:mm:ss:SSS");
+        long a = getStringToDate("2017-1-1 08:00:00:000" , "yyyy-MM-dd HH:mm:ss:SSS");
         long c = System.currentTimeMillis();
         return ((c -a) / 100);
     }
 
     public static void main(String[] args){
-        long a = getStringToDate("2017-1-1 08:00:00" ,"yyyy-MM-dd HH:mm:ss");
-        long c = System.currentTimeMillis();//
+        String a = getDateToString(140202255);
         System.out.println(a);
-        System.out.println(c - a);
-        //1,342,475,660
-        //13,424,757,000
-        System.out.println(getDateToString(13426163 * 100));
-        System.out.println(currentTimeSec());
 
     }
 }

@@ -36,6 +36,7 @@
                     android:id="@+id/device_info"
                     layout="@layout/device_info"
                     android:visibility="gone"
+                    app:layout_scrollFlags="scroll|exitUntilCollapsed"
                     />
 
                 <android.support.v7.widget.Toolbar
@@ -44,9 +45,10 @@
                     android:layout_height="?android:attr/actionBarSize"
                     app:contentInsetStart="0dp"
                     app:layout_collapseMode="pin"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                    android:background="@color/colorPrimary"
                     app:title="   "
                     >
-
                     <TextView
                         android:id="@+id/tv_deviceId_toolbar"
                         android:layout_width="wrap_content"

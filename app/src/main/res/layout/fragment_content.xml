@@ -141,6 +141,7 @@
             android:id="@+id/tv_status_vv"
             />
         <TextView
+            android:id="@+id/tv_grav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="重力加速度："
@@ -214,6 +215,7 @@
         </android.support.v7.widget.CardView>
 
         <TextView
+            android:id="@+id/tv_angV"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="角速度："
@@ -286,6 +288,7 @@
         </android.support.v7.widget.CardView>
 
         <TextView
+            android:id="@+id/tv_mag"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="地磁强度："
@@ -358,6 +361,7 @@
         </android.support.v7.widget.CardView>
 
         <TextView
+            android:id="@+id/tv_pressure"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="气压强度："/>

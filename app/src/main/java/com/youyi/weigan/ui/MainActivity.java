@@ -53,6 +53,7 @@ import com.youyi.weigan.beans.SensorFreq;
 import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.eventbean.Comm2GATT;
+import com.youyi.weigan.eventbean.Comm2WriteService;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.eventbean.Event_BleDevice;
 import com.youyi.weigan.moudul.ControlDeviceImp;
@@ -60,9 +61,11 @@ import com.youyi.weigan.service.GATTService;
 import com.youyi.weigan.service.WriteService;
 import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
+import com.youyi.weigan.utils.FileUtils;
 import com.youyi.weigan.utils.RequestPermissionUtils;
 import com.youyi.weigan.utils.ScreenUtil;
 import com.youyi.weigan.utils.ServiceUtils;
+import com.youyi.weigan.utils.SystemBarTintManager;
 import com.youyi.weigan.utils.WIFIUtils;
 import com.youyi.weigan.view.BattaryView;
 
@@ -77,6 +80,8 @@ import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.SEARCH_DEVICE_STATUE;
+import static com.youyi.weigan.utils.FileUtils.deleteCache;
+import static com.youyi.weigan.utils.FileUtils.getFileSize;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
 
@@ -137,6 +142,23 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         setContentView(R.layout.activity_main);
 
         initView();
+
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
+            Window window = getWindow();
+            // Translucent status bar
+            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            // Translucent navigation bar
+            window.setFlags(
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION,
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            SystemBarTintManager tintManager = new SystemBarTintManager(this);
+            tintManager.setStatusBarTintEnabled(true);
+            tintManager.setTintColor(getResources().getColor(R.color.colorPrimary));
+
+            device_info.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+
+        }
 
         initNavigationItem();
 
@@ -394,7 +416,14 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         EventUtil.post(Comm2GATT.TYPE.SEARCH_HIS);
                         break;
                     case R.id.navigation_upload_data:
+                        String size = FileUtils.getFileSize("weigan");
+                        showMessageOKCancel(MainActivity.this, "未上传至服务器的缓共有？" + size +" ,是否现在上传？", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
 
+                                EventUtil.post(Comm2WriteService.UpLoadCache);
+                            }
+                        });
                         break;
                     case R.id.navigation_clear_flash:
                         showMessageOKCancel(MainActivity.this, "确定要清空蓝牙设备里量测好的数据吗？（会丢失部分数据） 请确认已经接受完所有数据！！", new DialogInterface.OnClickListener() {
@@ -406,7 +435,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         });
                         break;
                     case R.id.navigation_clear_data:
+                        String cacheSize = FileUtils.getCacheSize("weigan");
+                        showMessageOKCancel(MainActivity.this, "sd卡内存储的缓存文件共有 " + cacheSize + " , 是否删除？", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                boolean d = FileUtils.deleteCache("weigan");
+                                if (d) controlDeviceImp.showToast("已删");
 
+                            }
+                        });
                         break;
                     case R.id.navigation_realTime_heartRate:
                         sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
@@ -767,8 +804,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private void showMessageOKCancel(Activity activity, String message, DialogInterface.OnClickListener okListener) {
         AlertDialog dlgShowBack = new AlertDialog.Builder(activity, R.style.MyDialogStyle)
                 .setMessage(message)
-                .setPositiveButton("已经接收完了", okListener)
-                .setNegativeButton("暂时不删", null)
+                .setPositiveButton("ok", okListener)
+                .setNegativeButton("cancel", null)
                 .create();
         dlgShowBack.show();
         Button btnPositive = dlgShowBack.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
