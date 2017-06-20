@@ -28,7 +28,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -39,7 +41,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by user on 2017/4/12.
- *
  */
 
 public class WriteToCSV {
@@ -58,8 +59,14 @@ public class WriteToCSV {
         String userJson = new Gson().toJson(userJsonBean);
         Log.i("MSL", "writeToServer: " + userJson);
 
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS).build();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(url)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 

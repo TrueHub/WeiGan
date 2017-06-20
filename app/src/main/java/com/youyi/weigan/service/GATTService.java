@@ -423,7 +423,6 @@ public class GATTService extends Service {
         } else if (data[2] == INSTRUCT_SEARCH_GRAV_HIS) {
             GravA mGravA = new GravA();
             if (data[1] == 0x0C) {
-
                 int timeInt = getTimeInt(data);
                 byte[] datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
@@ -474,7 +473,6 @@ public class GATTService extends Service {
             mag.setStrengthY(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[2], datas[3]}));
             mag.setStrengthZ(DataUtils.bytes2IntSignedMagZ(new byte[]{datas[4], datas[5]}));
             EventUtil.post(mag);
-            Log.i("MSL", "readData: mag" + mag.getTime());
         } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {
             Pressure pressure = new Pressure();
             byte[] datas;

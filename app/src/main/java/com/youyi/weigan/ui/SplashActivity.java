@@ -60,8 +60,14 @@ public class SplashActivity extends AppCompatActivity {
                 window.setExitTransition(new Slide().setDuration(DURATION));//A打开B的时候，A中的View是如何播放动画的
                 window.setEnterTransition(new Slide().setDuration(DURATION));//A打开B的时候，B中的View是如何播放动画的
                 startActivity(intent, option.toBundle());
+            } else {
+                startActivity(intent);
             }
-            startActivity(intent);
+            try {
+                Thread.sleep(DURATION * 3);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             finish();
         }
     }

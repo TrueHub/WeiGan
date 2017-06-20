@@ -100,7 +100,6 @@ public class WriteService extends Service {
             else {
                 url = ConstantPool.URL_DEBUG_WLAN;
             }
-
             //有网络状况下，重新上传缓存的数据
             if (!isUploading) {
                 isUploading = true;
@@ -127,8 +126,6 @@ public class WriteService extends Service {
                 break;
         }
     }
-
-
     private void upLoadCache(final String url) {
         //遍历预置的文件夹，如果有文件，就读出来
 
@@ -139,8 +136,6 @@ public class WriteService extends Service {
         final File[] files = dir.listFiles();
 
         if (files == null) return;
-
-
         for (int i = 0; i < files.length; i++) {
             if (files[i].isDirectory()) continue;//如果是文件夹，忽略它
             String fileName = files[i].getName();
@@ -162,7 +157,8 @@ public class WriteService extends Service {
                         .readTimeout(600, TimeUnit.SECONDS).build();
                 Retrofit retrofit = new Retrofit.Builder()
                         .baseUrl(url)
-                        .addConverterFactory(GsonConverterFactory.create()).client(client)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(client)
                         .build();
 
                 RetrofitItfc retrofitItfc = retrofit.create(RetrofitItfc.class);

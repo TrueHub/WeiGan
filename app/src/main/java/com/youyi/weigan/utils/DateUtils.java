@@ -7,6 +7,7 @@ import java.util.Locale;
 
 /**
  * Created by user on 2017/4/6.
+ *
  */
 
 public class DateUtils {
@@ -89,6 +90,7 @@ public class DateUtils {
         long c = System.currentTimeMillis();
         return (int) ((c -a) / 1000);
     }
+
     public static long current_100_TimeMillis(){
         long a = getStringToDate("2017-1-1 08:00:00:000" , "yyyy-MM-dd HH:mm:ss:SSS");
         long c = System.currentTimeMillis();

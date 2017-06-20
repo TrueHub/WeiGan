@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.youyi.weigan.R;
@@ -30,6 +31,7 @@ import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
+import com.youyi.weigan.utils.ScreenShot;
 import com.youyi.weigan.utils.StatusUtils;
 import com.youyi.weigan.view.ImgWheelView;
 import com.youyi.weigan.view.LineView;
@@ -71,7 +73,7 @@ public class ContentFragment extends Fragment {
     ArrayList<Pressure> pressureList = new ArrayList<>();
     ArrayList<GravA> gravAList = new ArrayList<>();
     ArrayList<AngV> angVArrayList = new ArrayList<>();
-    private final int LIST_SIZE = 1000;
+    private final int LIST_SIZE = 200;
     private final int SIZE_2 = 5;
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private UserBean userBean;
@@ -87,6 +89,7 @@ public class ContentFragment extends Fragment {
     private TextView tv_angV;
     private TextView tv_mag;
     private TextView tv_pressure;
+    private ScrollView scroll;
 
     public ContentFragment() {
         // Required empty public constructor
@@ -156,6 +159,7 @@ public class ContentFragment extends Fragment {
         tv_angV = (TextView) view.findViewById(R.id.tv_angV);
         tv_mag = (TextView) view.findViewById(R.id.tv_mag);
         tv_pressure = (TextView) view.findViewById(R.id.tv_pressure);
+        scroll = (ScrollView) view.findViewById(R.id.scroll);
     }
 
     /**
@@ -233,7 +237,7 @@ public class ContentFragment extends Fragment {
     public synchronized void getGATTCallback(AngV angV) {
         if (angV.getTime() != 0) {
             //心率历史
-            tv_angV.setText("角速度:"+ DateUtils.getDateToString(angV.getTime() * 100));
+            tv_angV.setText("角速度:" + DateUtils.getDateToString(angV.getTime() * 100));
             angVArrayList.add(angV);
             if (angVArrayList.size() == LIST_SIZE || getDataEnd) {
                 ArrayList<AngV> list = new ArrayList<>();
@@ -252,7 +256,6 @@ public class ContentFragment extends Fragment {
                 adapterAng = new MyAngVDataAdapter(angVList, this.getContext().getApplicationContext());
             lv_ang.setAdapter(adapterAng);
             adapterAng.notifyDataSetChanged();
-
         }
     }
 
@@ -281,12 +284,11 @@ public class ContentFragment extends Fragment {
         }
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public synchronized void getGATTCallback(Mag mag) {
         if (mag.getTime() != 0) {
             //地磁历史
-            tv_mag.setText("地磁强度:"+ DateUtils.getDateToString(mag.getTime() * 100));
+            tv_mag.setText("地磁强度:" + DateUtils.getDateToString(mag.getTime() * 100));
             magArrayList.add(mag);
 
             if (magArrayList.size() == LIST_SIZE || getDataEnd) {
@@ -356,7 +358,6 @@ public class ContentFragment extends Fragment {
         }
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void getInstruction(Comm2Frags comm2Frags) {
         if (comm2Frags.getType() != Comm2Frags.Type.FromActivity) return;
@@ -385,6 +386,11 @@ public class ContentFragment extends Fragment {
                 break;
             case "GET_DATA_START":
                 getDataEnd = false;
+                break;
+            case "ScreenShot":
+                String fileName = this.getActivity().getCacheDir().toString() + "/screenshot"+System.currentTimeMillis() + ".PNG";
+                Log.i("MSL", "getInstruction:  screenshot" + fileName);
+                ScreenShot.shootScrollView(scroll,fileName);
                 break;
         }
     }

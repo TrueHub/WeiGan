@@ -63,25 +63,26 @@ import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
 import com.youyi.weigan.utils.FileUtils;
 import com.youyi.weigan.utils.RequestPermissionUtils;
+import com.youyi.weigan.utils.ScreenShot;
 import com.youyi.weigan.utils.ScreenUtil;
 import com.youyi.weigan.utils.ServiceUtils;
 import com.youyi.weigan.utils.SystemBarTintManager;
 import com.youyi.weigan.utils.WIFIUtils;
 import com.youyi.weigan.view.BattaryView;
+import com.youyi.weigan.view.WaveCircleView;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
 import static android.view.View.GONE;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.SEARCH_DEVICE_STATUE;
-import static com.youyi.weigan.utils.FileUtils.deleteCache;
-import static com.youyi.weigan.utils.FileUtils.getFileSize;
 
 public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener {
 
@@ -170,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             userBean = UserBean.getInstence();
         }
 
-        toast = Toast.makeText(this, "再次点击退出程序", Toast.LENGTH_SHORT);
+        toast = Toast.makeText(this.getApplicationContext(), "再次点击退出程序", Toast.LENGTH_SHORT);
 
         controlDeviceImp = new ControlDeviceImp(this);
 
@@ -366,7 +367,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 }
                 break;
             case R.id.appbar_screenshot:
-                Log.i("MSL", "onOptionsItemSelected: screenshot ");
+
+                EventUtil.post(new Comm2Frags("ScreenShot",Comm2Frags.Type.FromActivity));
+
                 break;
             case R.id.appbar_share:
                 Log.i("MSL", "onOptionsItemSelected: share");
@@ -407,7 +410,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         EventUtil.post(SEARCH_DEVICE_STATUE);
                         break;
                     case R.id.navigation_collect_data:
-                        Log.d("MSL", "onClick: 网络是否wifi状态：" + isWifiState);
 
                         startWriteService();
 

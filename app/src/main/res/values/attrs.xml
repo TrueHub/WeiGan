@@ -25,5 +25,12 @@
         <attr name="textColor" format="color"  />
         <attr name="img" format="reference" />
     </declare-styleable>
+    <declare-styleable name="WaveCircleView">
+        <attr name="color"/>
+        <attr name="image" format="reference"/>
+        <attr name="stroke" format="boolean"/>
+        <attr name="waveCreateSpeed" format="integer"/>
+        <attr name="duration" format="integer"/>
+    </declare-styleable>
 
 </resources>
