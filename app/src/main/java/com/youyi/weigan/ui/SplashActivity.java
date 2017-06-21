@@ -18,14 +18,15 @@ public class SplashActivity extends AppCompatActivity {
     private final int DURATION = 500;
     private Window window;
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         window = getWindow();
-        window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS);
-        window.requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS);
+            window.requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        }
 
         setContentView(R.layout.activity_splash);
         showSplash();
