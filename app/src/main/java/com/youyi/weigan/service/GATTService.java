@@ -309,6 +309,7 @@ public class GATTService extends Service {
         switch (type) {
             case SEARCH_DEVICE_STATUE:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
+                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_SENSOR_FREQ, vibrationChar);
                 break;
             case REAL_DATA_ON:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.REAL_SENSOR_DATA_ON, vibrationChar);
@@ -344,6 +345,9 @@ public class GATTService extends Service {
                 Log.i("MSL", "指令：清除设备的flash缓存");
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.DELETE_FLASH, vibrationChar);
                 EventUtil.post(new EventNotification("HIS_DATA", true));
+                break;
+            case SEARCH_SENSOR:
+                commandPool.addCommand(CommandPool.Type.write , ConstantPool.SEARCH_SENSOR_FREQ , vibrationChar);
                 break;
         }
     }
@@ -427,15 +431,15 @@ public class GATTService extends Service {
                 byte[] datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
                 mGravA.setTime(timeInt);
-                mGravA.setVelX(DataUtils.bytes2IntSignedGravA(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSignedGravA(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSignedGravA(new byte[]{datas[4], datas[5]}));
+                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             } else if (data[1] == 0x08) {
                 byte[] datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
-                mGravA.setVelX(DataUtils.bytes2IntSignedGravA(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSignedGravA(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSignedGravA(new byte[]{datas[4], datas[5]}));
+                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             }
 
             EventUtil.post(mGravA);
@@ -452,9 +456,9 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            angV.setVelX(DataUtils.bytes2IntSignedAngV(new byte[]{datas[0], datas[1]}));
-            angV.setVelY(DataUtils.bytes2IntSignedAngV(new byte[]{datas[2], datas[3]}));
-            angV.setVelZ(DataUtils.bytes2IntSignedAngV(new byte[]{datas[4], datas[5]}));
+            angV.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+            angV.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+            angV.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             EventUtil.post(angV);
         } else if (data[2] == INSTRUCT_SEARCH_MAG) {
             Mag mag = new Mag();
@@ -469,9 +473,9 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            mag.setStrengthX(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[0], datas[1]}));
-            mag.setStrengthY(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[2], datas[3]}));
-            mag.setStrengthZ(DataUtils.bytes2IntSignedMagZ(new byte[]{datas[4], datas[5]}));
+            mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+            mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+            mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             EventUtil.post(mag);
         } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {
             Pressure pressure = new Pressure();

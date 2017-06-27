@@ -10,14 +10,16 @@ import com.youyi.weigan.beans.Pressure;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.youyi.weigan.R.string.angV;
+import static com.youyi.weigan.utils.MathUtils.getAVG;
+import static com.youyi.weigan.utils.MathUtils.getVariance;
 import static com.youyi.weigan.utils.StatusUtils.Status.Bike;
+import static com.youyi.weigan.utils.StatusUtils.Status.DownStairs;
 import static com.youyi.weigan.utils.StatusUtils.Status.Elevator;
-import static com.youyi.weigan.utils.StatusUtils.Status.Escalator;
 import static com.youyi.weigan.utils.StatusUtils.Status.Normal;
 import static com.youyi.weigan.utils.StatusUtils.Status.Run;
-import static com.youyi.weigan.utils.StatusUtils.Status.Sit;
+import static com.youyi.weigan.utils.StatusUtils.Status.Static;
 import static com.youyi.weigan.utils.StatusUtils.Status.Stairs;
+import static com.youyi.weigan.utils.StatusUtils.Status.UpStairs;
 import static com.youyi.weigan.utils.StatusUtils.Status.Walk;
 
 /**
@@ -31,72 +33,120 @@ public class StatusUtils {
         Run,        //跑步
         Bike,       //自行车
         Escalator,  //自动扶梯
+        UpStairs,   //上楼梯
+        DownStairs, //下楼梯
         Elevator,  //电梯
         Stairs,     //楼梯
-        Sit,        //静止
+        Static,        //静止
         Lie,        //躺下
         Leg_Crossed //跷腿
     }
 
-    public static Status getStatus(List<GravA> gravAList, List<AngV> angVList, List<Mag> magList, List<Pressure> pressures) {
-        Status status = null;
+    public static Status getStatus(List<GravA> gravAList, List<AngV> angVList) {
+        double[] angV_norm;   //  AngV的模
+        double[] grav_norm;   //  GraV的模
 
-        //九轴各数据的方差
-        //重力加速度
-        double gX = -1;
-        double gY = -1;
-        double gZ = -1;
-        //陀螺仪
-        double aX = -1;
-        double aY = -1;
-        double aZ = -1;
-        //地磁
-        double mX = -1;
-        double mY = -1;
-        double mZ = -1;
+        double angv_stdnorm;  //  AngV的模的方差
+        double angv_meannorm; //  AngV的模的平均值
+        double graV_meanY;    //  GraV_y轴的平均值
+        double grav_stdY;     //  GraV的y轴的方差
+        double grav_stdnorm;  //  GraV的模的方差
 
-        Integer[] gXs = new Integer[gravAList.size()];
-        Integer[] gYs = new Integer[gravAList.size()];
-        Integer[] gZs = new Integer[gravAList.size()];
+        Integer[] grav_yNums = new Integer[angVList.size()];
+        ArrayList<ArrayList<Integer>> g0 = new ArrayList<>();
         for (int i = 0; i < gravAList.size(); i++) {
+            ArrayList<Integer> g1 = new ArrayList<>();
             GravA gravA = gravAList.get(i);
-            gXs[i] = gravA.getVelX();
-            gYs[i] = gravA.getVelY();
-            gZs[i] = gravA.getVelZ();
+            g1.add(gravA.getVelX());
+            g1.add(gravA.getVelY());
+            g1.add(gravA.getVelZ());
+            g0.add(g1);
+            grav_yNums[i] = gravA.getVelY();
         }
 
-        Integer[] aXs = new Integer[angVList.size()];
-        Integer[] aYs = new Integer[angVList.size()];
-        Integer[] aZs = new Integer[angVList.size()];
+        Integer[] angV_yNums = new Integer[angVList.size()];
+        ArrayList<ArrayList<Integer>> a0 = new ArrayList<>();
         for (int i = 0; i < angVList.size(); i++) {
             AngV angV = angVList.get(i);
-            aXs[i] = angV.getVelX();
-            aYs[i] = angV.getVelY();
-            aZs[i] = angV.getVelZ();
+            ArrayList<Integer> a1 = new ArrayList<>();
+            a1.add(angV.getVelX());
+            a1.add(angV.getVelY());
+            a1.add(angV.getVelZ());
+            a0.add(a1);
+            angV_yNums[i] = angV.getVelY();
         }
 
-        Integer[] mXs = new Integer[magList.size()];
-        Integer[] mYs = new Integer[magList.size()];
-        Integer[] mZs = new Integer[magList.size()];
-        for (int i = 0; i < magList.size(); i++) {
-            Mag mag = magList.get(i);
-            mXs[i] = mag.getStrengthX();
-            mYs[i] = mag.getStrengthY();
-            mZs[i] = mag.getStrengthZ();
+        angV_norm = MathUtils.getNorm(a0);
+
+        //第一次判断 ， AngV的每组数据的模的方差
+
+        grav_norm = MathUtils.getNorm(g0);
+
+        angv_stdnorm = MathUtils.getVariance(angV_norm);
+        angv_meannorm = MathUtils.getAVG(angV_norm);
+        graV_meanY = getAVG(grav_yNums);
+        grav_stdY = MathUtils.getVariance(grav_yNums);
+        grav_stdnorm = MathUtils.getVariance(grav_norm);
+
+        Log.i("MSL", "angv_stdnorm: " + angv_stdnorm + " \n angv_meannorm:"
+                + angv_meannorm + " \n graV_meanY:" + graV_meanY + "\n grav_stdY:"
+                + grav_stdY +"\n grav_stdnorm" + grav_stdnorm
+        );
+
+
+        if (angv_stdnorm >= 735) {
+            graV_meanY = getAVG(grav_yNums);
+            if (graV_meanY >= 1025) {
+                grav_stdY = MathUtils.getVariance(grav_yNums);
+                if (grav_stdY < 653) {
+                    angv_meannorm = MathUtils.getAVG(angV_norm);
+                    if (angv_meannorm >= 1622) {
+                        if (angv_stdnorm < 2168) {
+                            return Walk;
+                        } else {
+                            if (angv_meannorm < 3048) {
+                                return Walk;
+                            } else {
+                                return Run;
+                            }
+                        }
+                    } else {
+                        return UpStairs;
+                    }
+                } else {
+                    return Run;
+                }
+            } else {
+                angv_meannorm = getAVG(angV_norm);
+                if (angv_meannorm >= 1962) {
+                    if (graV_meanY < 613) {
+                        return Run;
+                    } else {
+                        grav_stdY = MathUtils.getVariance(grav_yNums);
+                        if (grav_stdY >= 615) {
+                            return Run;
+                        } else {
+                            grav_norm = MathUtils.getNorm(g0);
+                            grav_stdnorm = MathUtils.getVariance(grav_norm);
+                            if (grav_stdnorm >= 589) {
+                                return Walk;
+                            } else {
+                                return DownStairs;
+                            }
+                        }
+                    }
+                } else {
+                    return UpStairs;
+                }
+            }
+
+        } else {
+            angv_meannorm = getAVG(angV_norm);
+            if (angv_meannorm < 212)
+                return Static;
+            else
+                return Bike;
         }
-
-
-        gX = MathUtils.getVarianceUtil(gXs);
-        gY = MathUtils.getVarianceUtil(gYs);
-        gZ = MathUtils.getVarianceUtil(gZs);
-        aX = MathUtils.getVarianceUtil(aXs);
-        aY = MathUtils.getVarianceUtil(aYs);
-        aZ = MathUtils.getVarianceUtil(aZs);
-        mX = MathUtils.getVarianceUtil(mXs);
-        mY = MathUtils.getVarianceUtil(mYs);
-        mZ = MathUtils.getVarianceUtil(mZs);
-
-        return status;
     }
 
 
@@ -129,7 +179,7 @@ public class StatusUtils {
             else
                 return Walk;
         } else {
-            return Sit;
+            return Static;
         }
     }
 
@@ -142,7 +192,7 @@ public class StatusUtils {
         }
         long start = pressureList.get(0).getIntensityOfPressure();
         long end = pressureList.get(pressureList.size() - 1).getIntensityOfPressure();
-        long abs = Math.abs( end - start);
+        long abs = Math.abs(end - start);
 
         long endTime = (pressureList.get(pressureList.size() - 1).getTime()) / 10;
         long startTime = (pressureList.get(0).getTime()) / 10;
@@ -155,10 +205,12 @@ public class StatusUtils {
             return Normal;
         else if (ff > 4 && ff <= 20 && a >= 700) {
             Log.i("MSL", "getMasterStateByPressure: Ang_max:" + a + ", endValue:" + end
-                    +",startValue:" + start +"\n endTime:"+endTime +",startTime:" + startTime);
+                    + ",startValue:" + start + "\n endTime:" + endTime + ",startTime:" + startTime);
             return Stairs;
         } else if (ff > 20)
             return Elevator;
         return null;
     }
+
+
 }

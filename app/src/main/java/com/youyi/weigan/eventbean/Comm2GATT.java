@@ -36,6 +36,8 @@ public class Comm2GATT {
 
         /** 清除设备里的缓存*/
         CLEAR_FLASH,
+        /**检查sensor频率 */
+        SEARCH_SENSOR,
 
     }
 }
