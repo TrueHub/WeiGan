@@ -46,10 +46,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amap.api.location.AMapLocation;
-import com.amap.api.location.AMapLocationClient;
-import com.amap.api.location.AMapLocationClientOption;
-import com.amap.api.location.AMapLocationListener;
 import com.youyi.weigan.R;
 import com.youyi.weigan.adapter.DeviceListAdapter;
 import com.youyi.weigan.beans.DeviceStatusBean;
@@ -67,11 +63,13 @@ import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
 import com.youyi.weigan.utils.FileUtils;
 import com.youyi.weigan.utils.RequestPermissionUtils;
+import com.youyi.weigan.utils.ScreenShot;
 import com.youyi.weigan.utils.ScreenUtil;
 import com.youyi.weigan.utils.ServiceUtils;
 import com.youyi.weigan.utils.SystemBarTintManager;
 import com.youyi.weigan.utils.WIFIUtils;
 import com.youyi.weigan.view.BattaryView;
+import com.youyi.weigan.view.WaveCircleView;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -79,7 +77,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 
 import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_OFF;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_DATA_ON;
 import static com.youyi.weigan.eventbean.Comm2GATT.TYPE.REAL_PULSE_OFF;
@@ -114,15 +111,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private MenuItem nvg_upload_data;
     private MenuItem nvg_clear_flash;
     private MenuItem nvg_del_cache;
-    private MenuItem nvg_gps_location;
-    private MenuItem nvg_net_location;
     //侧滑菜单中的real data 组中的Switch
     private Switch sw_heartRate_real;
     private Switch sw_data_real;
-    //侧滑菜单中的location组中的Switch
-    private Switch sw_location;
-    private Switch sw_network_loca;
-    private Switch sw_gps_loca;
     //侧滑菜单中的sensor setting中的SeekBar
     private SeekBar sb_grav;
     private SeekBar sb_ang;
@@ -143,61 +134,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private RecyclerView recyclerView;
     private int[] freqValues = new int[4];
     private boolean getDataEnd;
-
-    //声明AMapLocationClient类对象
-    public AMapLocationClient mLocationClient = null;
-    //声明定位回调监听器
-    public AMapLocationListener mLocationListener = new AMapLocationListener() {
-        @Override
-        public void onLocationChanged(AMapLocation aMapLocation) {
-
-            if (aMapLocation == null) {
-                Log.e("MSL", "onLocationChanged:  + aMapLocation is null");
-                return;
-            }
-            if (aMapLocation.getErrorCode() != 0) {
-                //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
-                Log.e("AmapError", "location Error, ErrCode:"
-                        + aMapLocation.getErrorCode() + ", errInfo:"
-                        + aMapLocation.getErrorInfo());
-                return;
-            }
-            String str = aMapLocation.getCity() + " - "
-                    + aMapLocation.getDistrict() + " - "
-                    + aMapLocation.getStreet() + " - "
-                    + aMapLocation.getStreetNum() + " , "
-                    + aMapLocation.getBuildingId() + " , "
-                    + aMapLocation.getFloor();
-            controlDeviceImp.showToast(str);
-            Log.i("MSL", "onLocationChanged: " + str);
-/**
- * amapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
- * amapLocation.getLatitude();//获取纬度
- * amapLocation.getLongitude();//获取经度
- * amapLocation.getAccuracy();//获取精度信息
- * amapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
- * amapLocation.getCountry();//国家信息
- * amapLocation.getProvince();//省信息
- * amapLocation.getCity();//城市信息
- * amapLocation.getDistrict();//城区信息
- * amapLocation.getStreet();//街道信息
- * amapLocation.getStreetNum();//街道门牌号信息
- * amapLocation.getCityCode();//城市编码
- * amapLocation.getAdCode();//地区编码
- * amapLocation.getAoiName();//获取当前定位点的AOI信息
- * amapLocation.getBuildingId();//获取当前室内定位的建筑物Id
- * amapLocation.getFloor();//获取当前室内定位的楼层
- * amapLocation.getGpsStatus();//获取GPS的当前状态
- //获取定位时间
- SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
- Date date = new Date(amapLocation.getTime());
- df.format(date);
- */
-
-        }
-    };
-    //声明AMapLocationClientOption对象
-    public AMapLocationClientOption mLocationOption = null;
 
 
     @Override
@@ -257,39 +193,39 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private void initNavigationItem() {
 
         for (int i = 0; i < navigationView.getMenu().size(); i++) {
-            MenuItem root = navigationView.getMenu().getItem(i);//第一层级的item
-            switch (root.getItemId()) {//
+            MenuItem root1 = navigationView.getMenu().getItem(i);//第一层级的item
+            switch (root1.getItemId()) {//
                 //conn按钮
                 case R.id.navigation_conn:
-                    nvg_conn = root;
+                    nvg_conn = root1;
                     break;
                 //获取设备状态
                 case R.id.navigation_check_status:
-                    nvg_chk_status = root;
+                    nvg_chk_status = root1;
                     break;
                 //收集数据
                 case R.id.navigation_collect_data:
-                    nvg_collect_data = root;
+                    nvg_collect_data = root1;
                     getDataEnd = false;
                     break;
                 //上传本地数据
                 case R.id.navigation_upload_data:
-                    nvg_upload_data = root;
+                    nvg_upload_data = root1;
                     break;
                 //清除外接设备的缓存数据
                 case R.id.navigation_clear_flash:
-                    nvg_clear_flash = root;
+                    nvg_clear_flash = root1;
                     break;
                 //删除本地缓存数据
                 case R.id.navigation_clear_data:
-                    nvg_del_cache = root;
+                    nvg_del_cache = root1;
                     break;
 
                 //real这一组
                 case R.id.navigation_real_group:
                     //遍历real group 的item下的menu item。。。
-                    for (int j = 0; j < root.getSubMenu().size(); j++) {
-                        MenuItem v = root.getSubMenu().getItem(j);
+                    for (int j = 0; j < root1.getSubMenu().size(); j++) {
+                        MenuItem v = root1.getSubMenu().getItem(j);
                         //还是根据id判断
                         switch (v.getItemId()) {
                             case R.id.navigation_realTime_heartRate:
@@ -329,8 +265,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     break;
                 //传感器设置一组
                 case R.id.navigation_sensor_setting:
-                    for (int j = 0; j < root.getSubMenu().size(); j++) {
-                        MenuItem v = root.getSubMenu().getItem(j);
+                    for (int j = 0; j < root1.getSubMenu().size(); j++) {
+                        MenuItem v = root1.getSubMenu().getItem(j);
                         switch (v.getItemId()) {
                             case R.id.navigation_sensor_freq:
 
@@ -344,223 +280,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         }
                     }
                     break;
-                case R.id.navigation_aMap:
-
-                    for (int j = 0; j < root.getSubMenu().size(); j++) {
-                        MenuItem v = root.getSubMenu().getItem(j);
-
-                        switch (v.getItemId()) {
-                            case R.id.navigation_location_switch:
-                                sw_location = (Switch) v.getActionView().findViewById(R.id._switch);
-                                sw_location.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                    @Override
-                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                        if (isChecked) {
-                                            nvg_gps_location.setVisible(true);
-                                            nvg_net_location.setVisible(true);
-
-                                            initLocationClientOption();
-
-                                            //启动定位
-                                            mLocationClient.startLocation();
-
-                                        } else {
-                                            mLocationClient.stopLocation();
-                                            mLocationClient.onDestroy();
-                                            nvg_gps_location.setVisible(false);
-                                            nvg_net_location.setVisible(false);
-                                        }
-                                    }
-                                });
-                                break;
-
-                            case R.id.navigation_gps_location:
-                                nvg_gps_location = v;
-                                sw_gps_loca = (Switch) v.getActionView().findViewById(R.id._switch);
-
-                                sw_gps_loca.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                    @Override
-                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                        Log.i("MSL", "onCheckedChanged: " + isChecked);
-                                        if (isChecked) {
-                                            //设置定位模式为AMapLocationMode.Device_Sensors，仅设备模式。
-                                            mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
-
-                                            //给定位客户端对象设置定位参数
-                                            mLocationClient.setLocationOption(mLocationOption);
-
-                                            mLocationClient.startLocation();
-                                        } else {
-
-                                        }
-                                    }
-                                });
-                                break;
-                            case R.id.navigation_net_location:
-                                nvg_net_location = v;
-                                sw_network_loca = (Switch) v.getActionView().findViewById(R.id._switch);
-                                sw_network_loca.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                    @Override
-                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                        Log.i("MSL", "onCheckedChanged: " + isChecked);
-                                        if (isChecked) {
-                                            //设置定位模式为AMapLocationMode.Battery_Saving，低功耗模式。
-                                            mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
-
-                                            //给定位客户端对象设置定位参数
-                                            mLocationClient.setLocationOption(mLocationOption);
-
-                                            mLocationClient.startLocation();
-                                        } else {
-
-                                        }
-                                    }
-                                });
-                                break;
-                        }
-                    }
-
-
-                    break;
-
             }
         }
-    }
-
-    //侧滑菜单item点击事件
-    private void setNavigationItemClickListener() {
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.navigation_conn:
-
-                        String title = (String) (item.getTitle());
-                        Log.d("MSL", "onNavigationItemSelected: conn");
-                        requestMyPermissions();
-
-                        if (title.equals("连接")) {
-                            if (ServiceUtils.isServiceWork(MainActivity.this, "com.youyi.weigan.service.GATTService")) {
-                                EventUtil.post(Comm2GATT.TYPE.START_SCAN);
-                                Log.e("MSL", "onClick: gatt service is running");
-                            } else {
-                                gattService = new Intent(MainActivity.this, GATTService.class);
-                                startService(gattService);
-                                Log.e("MSL", "onClick: gatt is not running");
-                            }
-                            startWriteService();
-
-                        } else if (title.equals("断开")) {
-                            EventUtil.post(Comm2GATT.TYPE.STOP_GATT_SERVICE);
-                        }
-                        break;
-                    case R.id.navigation_check_status:
-                        EventUtil.post(SEARCH_DEVICE_STATUE);
-                        break;
-                    case R.id.navigation_collect_data:
-
-                        startWriteService();
-
-                        EventUtil.post(new Comm2Frags("GET_DATA_START", Comm2Frags.Type.FromActivity));
-
-                        EventUtil.post(Comm2GATT.TYPE.SEARCH_HIS);
-                        break;
-                    case R.id.navigation_upload_data:
-                        String size = FileUtils.getFileSize("weigan");
-                        showMessageOKCancel(MainActivity.this, "未上传至服务器的缓共有？" + size + " ,是否现在上传？", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                EventUtil.post(Comm2WriteService.UpLoadCache);
-                            }
-                        });
-                        break;
-                    case R.id.navigation_clear_flash:
-                        showMessageOKCancel(MainActivity.this, "确定要清空蓝牙设备里量测好的数据吗？（会丢失部分数据） 请确认已经接受完所有数据！！", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                EventUtil.post(Comm2GATT.TYPE.CLEAR_FLASH);
-                            }
-                        });
-                        break;
-                    case R.id.navigation_clear_data:
-                        String cacheSize = FileUtils.getCacheSize("weigan");
-                        showMessageOKCancel(MainActivity.this, "sd卡内存储的缓存文件共有 " + cacheSize + " , 是否删除？", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                boolean d = FileUtils.deleteCache("weigan");
-                                if (d) controlDeviceImp.showToast("已删");
-
-                            }
-                        });
-                        break;
-                    case R.id.navigation_realTime_heartRate:
-                        sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
-
-                        break;
-                    case R.id.navigation_realData:
-                        sw_data_real.setChecked(!sw_data_real.isChecked());
-                        break;
-                    case R.id.navigation_sensor_freq:
-                        Log.d("MSL", "onNavigationItemSelected: sensor");
-                        showDialogForSeekBar(MainActivity.this);
-                        break;
-                    case R.id.navigation_vib_low:
-
-                        break;
-                    case R.id.navigation_vib_up:
-
-                        break;
-                    case R.id.navigation_location_switch:
-                        sw_location.setChecked(!sw_location.isChecked());
-                        break;
-                    case R.id.navigation_gps_location:
-                        sw_gps_loca.setChecked(!sw_gps_loca.isChecked());
-                        break;
-                    case R.id.navigation_net_location:
-                        sw_network_loca.setChecked(!sw_network_loca.isChecked());
-                        break;
-
-                }
-                return false;
-            }
-        });
-    }
-
-    private void initLocationClientOption() {
-        //初始化定位
-        mLocationClient = new AMapLocationClient(getApplicationContext());
-        //设置定位回调监听
-        mLocationClient.setLocationListener(mLocationListener);
-
-        //初始化AMapLocationClientOption对象
-        mLocationOption = new AMapLocationClientOption();
-
-        //设置定位间隔,单位毫秒,默认为2000ms，最低1000ms。
-        mLocationOption.setInterval(1000);
-
-        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-
-        //设置是否返回地址信息（默认返回地址信息）
-        mLocationOption.setNeedAddress(true);
-
-        //设置是否强制刷新WIFI，默认为true，强制刷新。
-        mLocationOption.setWifiActiveScan(true);
-
-        //设置是否允许模拟位置,默认为true，允许模拟位置
-        mLocationOption.setMockEnable(true);
-
-        //单位是毫秒，默认30000毫秒，建议超时时间不要低于8000毫秒。
-        mLocationOption.setHttpTimeOut(20000);
-
-        //关闭缓存机制
-        mLocationOption.setLocationCacheEnable(false);
-
-        //给定位客户端对象设置定位参数
-        mLocationClient.setLocationOption(mLocationOption);
-
     }
 
     private void initFragments() {
@@ -657,6 +378,97 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         return super.onOptionsItemSelected(item);
     }
 
+    //侧滑菜单item点击事件
+    private void setNavigationItemClickListener() {
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.navigation_conn:
+
+                        String title = (String) (item.getTitle());
+                        Log.d("MSL", "onNavigationItemSelected: conn");
+                        requestMyPermissions();
+
+                        if (title.equals("连接")) {
+                            if (ServiceUtils.isServiceWork(MainActivity.this, "com.youyi.weigan.service.GATTService")) {
+                                EventUtil.post(Comm2GATT.TYPE.START_SCAN);
+                                Log.e("MSL", "onClick: gatt service is running");
+                            } else {
+                                gattService = new Intent(MainActivity.this, GATTService.class);
+                                startService(gattService);
+                                Log.e("MSL", "onClick: gatt is not running");
+                            }
+                            startWriteService();
+
+                        } else if (title.equals("断开")) {
+                            EventUtil.post(Comm2GATT.TYPE.STOP_GATT_SERVICE);
+                        }
+                        break;
+                    case R.id.navigation_check_status:
+                        EventUtil.post(SEARCH_DEVICE_STATUE);
+                        break;
+                    case R.id.navigation_collect_data:
+
+                        startWriteService();
+
+                        EventUtil.post(new Comm2Frags("GET_DATA_START", Comm2Frags.Type.FromActivity));
+
+                        EventUtil.post(Comm2GATT.TYPE.SEARCH_HIS);
+                        break;
+                    case R.id.navigation_upload_data:
+                        String size = FileUtils.getFileSize("weigan");
+                        showMessageOKCancel(MainActivity.this, "未上传至服务器的缓共有？" + size + " ,是否现在上传？", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                EventUtil.post(Comm2WriteService.UpLoadCache);
+                            }
+                        });
+                        break;
+                    case R.id.navigation_clear_flash:
+                        showMessageOKCancel(MainActivity.this, "确定要清空蓝牙设备里量测好的数据吗？（会丢失部分数据） 请确认已经接受完所有数据！！", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                EventUtil.post(Comm2GATT.TYPE.CLEAR_FLASH);
+                            }
+                        });
+                        break;
+                    case R.id.navigation_clear_data:
+                        String cacheSize = FileUtils.getCacheSize("weigan");
+                        showMessageOKCancel(MainActivity.this, "sd卡内存储的缓存文件共有 " + cacheSize + " , 是否删除？", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                boolean d = FileUtils.deleteCache("weigan");
+                                if (d) controlDeviceImp.showToast("已删");
+
+                            }
+                        });
+                        break;
+                    case R.id.navigation_realTime_heartRate:
+                        sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
+
+                        break;
+                    case R.id.navigation_realData:
+                        sw_data_real.setChecked(!sw_data_real.isChecked());
+                        break;
+                    case R.id.navigation_sensor_freq:
+                        Log.d("MSL", "onNavigationItemSelected: sensor");
+                        showDialogForSeekBar(MainActivity.this);
+                        break;
+                    case R.id.navigation_vib_low:
+
+                        break;
+                    case R.id.navigation_vib_up:
+
+                        break;
+
+                }
+                return false;
+            }
+        });
+    }
 
     private void initView() {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -789,7 +601,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     } else {
                         EventUtil.post(REAL_PULSE_OFF);
                     }
-
                 } else {
                     initAll();
                 }
@@ -797,13 +608,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         }
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void sensorSetting(SensorFreq sensorFreq) {
         if (sensorFreq.getType() == SensorFreq.Type.comm2Activity) {
+            Log.i("MSL", "sensorSetting: " + sensorFreq.getGravFreq());
             freqValues[0] = sensorFreq.getGravFreq();
-            freqValues[1] = sensorFreq.getAngFreq();
-            freqValues[2] = sensorFreq.getMagFreq();
+            freqValues[1] = sensorFreq.getAngFreq() ;
+            freqValues[2] = sensorFreq.getMagFreq() ;
             freqValues[3] = sensorFreq.getPressureFreq();
         }
     }
@@ -881,8 +692,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.READ_CONTACTS,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_PHONE_STATE
-            };
+                    Manifest.permission.READ_PHONE_STATE};
             RequestPermissionUtils.requestPermission(this, permissions, "BLE设备连接蓝牙还需要获取以下权限");
         }
     }
@@ -901,26 +711,23 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     /****************************seekBar的listener事件************************************************ */
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if (sensorFreq == null) sensorFreq = new SensorFreq();
         switch (seekBar.getId()) {
             case R.id.ss_seek_grav:
-                if (!fromUser) break;
-                if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setGravFreq(progress + 1);
+                if (fromUser)
+                    sensorFreq.setGravFreq(progress);
                 break;
             case R.id.ss_seek_ang:
-                if (!fromUser) break;
-                if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setAngFreq(progress + 1);
+                if (fromUser)
+                    sensorFreq.setAngFreq(progress);
                 break;
             case R.id.ss_seek_mag:
-                if (!fromUser) break;
-                if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setMagFreq(progress + 1);
+                if (fromUser)
+                    sensorFreq.setMagFreq(progress);
                 break;
             case R.id.ss_seek_pressure:
-                if (!fromUser) break;
-                if (sensorFreq == null) sensorFreq = new SensorFreq();
-                sensorFreq.setPressureFreq(progress + 1);
+                if (fromUser)
+                    sensorFreq.setPressureFreq(progress);
                 break;
         }
     }
@@ -1042,18 +849,17 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (sensorFreq != null) {
-                            if (sensorFreq.getGravFreq() == 0)
+                            if (sensorFreq.getGravFreq() > 100)
                                 sensorFreq.setGravFreq(freqValues[0]);
-                            if (sensorFreq.getAngFreq() == 0)
+                            if (sensorFreq.getAngFreq() > 100)
                                 sensorFreq.setAngFreq(freqValues[1]);
-                            if (sensorFreq.getMagFreq() == 0)
+                            if (sensorFreq.getMagFreq() > 100)
                                 sensorFreq.setMagFreq(freqValues[2]);
-                            if (sensorFreq.getPressureFreq() == 0)
+                            if (sensorFreq.getPressureFreq() > 100)
                                 sensorFreq.setPressureFreq(freqValues[3]);
                             EventUtil.post(sensorFreq);
                             Log.i("MSL", "onClick: \n" + sensorFreq.getGravFreq() + "\n" + sensorFreq.getAngFreq()
                                     + "\n" + sensorFreq.getMagFreq() + "\n" + sensorFreq.getPressureFreq());
-                            dialog = null;
                         }
                     }
                 })
@@ -1064,7 +870,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         sb_ang.setOnSeekBarChangeListener(this);
         sb_mag.setOnSeekBarChangeListener(this);
         sb_pressure.setOnSeekBarChangeListener(this);
-
     }
 
     private void showDeviceChooseDialog(Activity activity) {
