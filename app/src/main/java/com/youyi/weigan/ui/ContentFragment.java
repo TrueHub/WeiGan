@@ -98,7 +98,7 @@ public class ContentFragment extends Fragment implements LocationSource,
     private final int WALK = 0;
     private final int RUN = 1;
     private final int BIKE = 2;
-    private final int SIT = 3;
+    private final int STATIC = 3;
     private final int UpStairs = 4;
     private final int DownStairs = 5;
     private final int Elevator = 6;
@@ -208,8 +208,8 @@ public class ContentFragment extends Fragment implements LocationSource,
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_run),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_bike),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_stand),
-                BitmapFactory.decodeResource(getResources(), R.drawable.down_stairs),
                 BitmapFactory.decodeResource(getResources(), R.drawable.up_stairs),
+                BitmapFactory.decodeResource(getResources(), R.drawable.down_stairs),
 //                BitmapFactory.decodeResource(getResources(), R.drawable.elevator)
 
         };
@@ -330,7 +330,7 @@ public class ContentFragment extends Fragment implements LocationSource,
         StatusUtils.Status status = StatusUtils.getStatus(gravAList, angVList);
         switch (status) {
             case Static:
-                imgWheelView.setChecked(SIT);
+                imgWheelView.setChecked(STATIC);
                 tv_status.setText("静止");
                 break;
             case Walk:
@@ -468,7 +468,6 @@ public class ContentFragment extends Fragment implements LocationSource,
 
 
     }
-
 
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {

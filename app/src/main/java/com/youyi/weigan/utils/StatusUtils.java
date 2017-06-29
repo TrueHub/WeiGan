@@ -82,11 +82,11 @@ public class StatusUtils {
 
         grav_norm = MathUtils.getNorm(g0);
 
-        angv_stdnorm = MathUtils.getVariance(angV_norm);
-        angv_meannorm = MathUtils.getAVG(angV_norm);
+        angv_stdnorm = getVariance(angV_norm);
+        angv_meannorm = getAVG(angV_norm);
         graV_meanY = getAVG(grav_yNums);
-        grav_stdY = MathUtils.getVariance(grav_yNums);
-        grav_stdnorm = MathUtils.getVariance(grav_norm);
+        grav_stdY = getVariance(grav_yNums);
+        grav_stdnorm = getVariance(grav_norm);
 
         Log.i("MSL", "angv_stdnorm: " + angv_stdnorm + " \n angv_meannorm:"
                 + angv_meannorm + " \n graV_meanY:" + graV_meanY + "\n grav_stdY:"

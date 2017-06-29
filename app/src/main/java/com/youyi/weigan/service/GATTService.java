@@ -188,7 +188,7 @@ public class GATTService extends Service {
     private class BLEGATTCallBack extends BluetoothGattCallback {
 
         @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)                                                                                                                                           {
             super.onConnectionStateChange(gatt, status, newState);
             mGatt = gatt;
             if (status == 0) {
@@ -337,7 +337,6 @@ public class GATTService extends Service {
             case STOP_GATT_SERVICE:
                 EventUtil.post("断开GATT连接");
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
-//                Log.i("MSL", "Disconnected from GATT server");
                 mGatt.disconnect();
                 stopSelf();
                 break;
@@ -384,7 +383,6 @@ public class GATTService extends Service {
         if (data[2] == INSTRUCT_SET_TIME) {//返回：设定时间成功
             if (data[3] == (byte) 0x01) {
                 EventUtil.post("SET_TIME_SUCCESS!");
-//                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_DEVICE_STATUES, vibrationChar);
             }
         } else if (data[2] == INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte) 0x06) {
             //返回各传感器的采样频率
@@ -394,16 +392,15 @@ public class GATTService extends Service {
             sensorFreq.setMagFreq(DataUtils.Byte2Int(data[5]));
             sensorFreq.setPressureFreq(DataUtils.Byte2Int(data[6]));
             sensorFreq.setType(SensorFreq.Type.comm2Activity);
+            Log.d("MSL", "readData: freq");
             EventUtil.post(sensorFreq);
 
         } else if (data[2] == INSTRUCT_SEARCH_PULSE && data[1] == (byte) 0x02) {
             EventUtil.post("开关实时心率成功");
-
         } else if (data[2] == INSTRUCT_SEARCH_TIME) {
             int timeInt = getTimeInt(data);
             byte[] datas = new byte[length - 6];
             System.arraycopy(data, 7, datas, 0, datas.length);
-
             DeviceStatusBean deviceStatusBean = new DeviceStatusBean();
             deviceStatusBean.setTime(timeInt);
             deviceStatusBean.setDeviceElec(datas[0]);
@@ -426,28 +423,25 @@ public class GATTService extends Service {
             EventUtil.post(pulse);
         } else if (data[2] == INSTRUCT_SEARCH_GRAV_HIS) {
             GravA mGravA = new GravA();
+            byte[] datas;
             if (data[1] == 0x0C) {
                 int timeInt = getTimeInt(data);
-                byte[] datas = new byte[length - 6];
+                datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
                 mGravA.setTime(timeInt);
-                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
-            } else if (data[1] == 0x08) {
-                byte[] datas = new byte[length - 2];
+            } else{
+                datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
-                mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             }
+                mGravA.setVelX(DataUtils.bytes2IntSignedGrav(new byte[]{datas[0], datas[1]}));
+                mGravA.setVelY(DataUtils.bytes2IntSignedGrav(new byte[]{datas[2], datas[3]}));
+                mGravA.setVelZ(DataUtils.bytes2IntSignedGrav(new byte[]{datas[4], datas[5]}));
 
             EventUtil.post(mGravA);
         } else if (data[2] == INSTRUCT_SEARCH_ANGV) {
             AngV angV = new AngV();
             byte[] datas;
             if (data[1] == 0x0C) {
-
                 int timeInt = getTimeInt(data);
                 datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
@@ -473,9 +467,9 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-            mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-            mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            mag.setStrengthX(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[0], datas[1]}));
+            mag.setStrengthY(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[2], datas[3]}));
+            mag.setStrengthZ(DataUtils.bytes2IntSignedMagZ(new byte[]{datas[4], datas[5]}));
             EventUtil.post(mag);
         } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {
             Pressure pressure = new Pressure();

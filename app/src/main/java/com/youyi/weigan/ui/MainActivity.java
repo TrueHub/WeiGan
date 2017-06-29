@@ -63,14 +63,13 @@ import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
 import com.youyi.weigan.utils.FileUtils;
 import com.youyi.weigan.utils.RequestPermissionUtils;
-import com.youyi.weigan.utils.ScreenShot;
 import com.youyi.weigan.utils.ScreenUtil;
 import com.youyi.weigan.utils.ServiceUtils;
 import com.youyi.weigan.utils.SystemBarTintManager;
 import com.youyi.weigan.utils.WIFIUtils;
 import com.youyi.weigan.view.BattaryView;
-import com.youyi.weigan.view.WaveCircleView;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -391,6 +390,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         requestMyPermissions();
 
                         if (title.equals("连接")) {
+                            devicelistDialog = null;
                             if (ServiceUtils.isServiceWork(MainActivity.this, "com.youyi.weigan.service.GATTService")) {
                                 EventUtil.post(Comm2GATT.TYPE.START_SCAN);
                                 Log.e("MSL", "onClick: gatt service is running");
@@ -596,11 +596,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
                     EventUtil.post(SEARCH_DEVICE_STATUE);
 
-                    if (sw_heartRate_real.isChecked()) {
+                    if (sw_heartRate_real.isChecked())
                         EventUtil.post(REAL_PULSE_ON);
-                    } else {
+                    else
                         EventUtil.post(REAL_PULSE_OFF);
-                    }
+
+                    if (sw_data_real.isChecked())
+                        EventUtil.post(REAL_DATA_ON);
+                    else
+                        EventUtil.post(REAL_DATA_OFF);
                 } else {
                     initAll();
                 }
@@ -611,11 +615,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void sensorSetting(SensorFreq sensorFreq) {
         if (sensorFreq.getType() == SensorFreq.Type.comm2Activity) {
-            Log.i("MSL", "sensorSetting: " + sensorFreq.getGravFreq());
-            freqValues[0] = sensorFreq.getGravFreq();
-            freqValues[1] = sensorFreq.getAngFreq() ;
-            freqValues[2] = sensorFreq.getMagFreq() ;
-            freqValues[3] = sensorFreq.getPressureFreq();
+            freqValues[0] = (sensorFreq.getGravFreq()  == 0|| sensorFreq.getGravFreq() > 100) ? -1 : sensorFreq.getGravFreq();
+            freqValues[1] = (sensorFreq.getAngFreq() == 0 || sensorFreq.getAngFreq() > 100)? -1 : sensorFreq.getAngFreq();
+            freqValues[2] = (sensorFreq.getMagFreq() == 0 || sensorFreq.getMagFreq() > 100)? -1 : sensorFreq.getMagFreq();
+            freqValues[3] = (sensorFreq.getPressureFreq() == 0 || sensorFreq.getPressureFreq()> 100)? -1 : sensorFreq.getPressureFreq();
         }
     }
 
@@ -712,22 +715,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (sensorFreq == null) sensorFreq = new SensorFreq();
+        int i = progress;
+        if (progress == 0) i = -1;
         switch (seekBar.getId()) {
             case R.id.ss_seek_grav:
                 if (fromUser)
-                    sensorFreq.setGravFreq(progress);
+                    sensorFreq.setGravFreq(i);
                 break;
             case R.id.ss_seek_ang:
                 if (fromUser)
-                    sensorFreq.setAngFreq(progress);
+                    sensorFreq.setAngFreq(i);
                 break;
             case R.id.ss_seek_mag:
                 if (fromUser)
-                    sensorFreq.setMagFreq(progress);
+                    sensorFreq.setMagFreq(i);
                 break;
             case R.id.ss_seek_pressure:
                 if (fromUser)
-                    sensorFreq.setPressureFreq(progress);
+                    sensorFreq.setPressureFreq(i);
                 break;
         }
     }
@@ -849,14 +854,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (sensorFreq != null) {
-                            if (sensorFreq.getGravFreq() > 100)
+                            if (sensorFreq.getGravFreq() == 0)
                                 sensorFreq.setGravFreq(freqValues[0]);
-                            if (sensorFreq.getAngFreq() > 100)
+                            if (sensorFreq.getAngFreq() == 0)
                                 sensorFreq.setAngFreq(freqValues[1]);
-                            if (sensorFreq.getMagFreq() > 100)
+                            if (sensorFreq.getMagFreq() == 0)
                                 sensorFreq.setMagFreq(freqValues[2]);
-                            if (sensorFreq.getPressureFreq() > 100)
+                            if (sensorFreq.getPressureFreq() == 0)
                                 sensorFreq.setPressureFreq(freqValues[3]);
+
+                            if (sensorFreq.getGravFreq() == -1)
+                                sensorFreq.setGravFreq(0);
+                            if (sensorFreq.getAngFreq() == -1)
+                                sensorFreq.setAngFreq(0);
+                            if (sensorFreq.getMagFreq() == -1)
+                                sensorFreq.setMagFreq(0);
+                            if (sensorFreq.getPressureFreq() == -1)
+                                sensorFreq.setPressureFreq(0);
+
                             EventUtil.post(sensorFreq);
                             Log.i("MSL", "onClick: \n" + sensorFreq.getGravFreq() + "\n" + sensorFreq.getAngFreq()
                                     + "\n" + sensorFreq.getMagFreq() + "\n" + sensorFreq.getPressureFreq());
@@ -882,15 +897,25 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 .create();
         devicelistDialog.show();
 
+        devicelistDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                devicelistDialog = null;
+            }
+        });
+
         final Button btnPositive = devicelistDialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
         btnPositive.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (btnPositive.getText().equals("扫描")) {
                     btnPositive.setText("停止");
+                    Log.i("MSL", "onClick: " + EventBus.getDefault().isRegistered(this));
+                    EventUtil.register(btnPositive.getContext());
                     EventUtil.post(Comm2GATT.TYPE.START_SCAN);
 
                 } else if (btnPositive.getText().equals("停止")) {
+                    Log.i("MSL", "onClick: " + EventBus.getDefault().isRegistered(this));
                     btnPositive.setText("扫描");
                     EventUtil.post(Comm2GATT.TYPE.STOP_SCAN);
                 }

@@ -27,7 +27,7 @@ public class DataUtils {
         return num;
     }
 
-/*    public static int bytes2IntSigned(byte[] byteNum) {
+    public static int bytes2IntSignedGrav(byte[] byteNum) {
         int num = 0;
         for (int ix = 0; ix < byteNum.length; ++ix) {
             num <<= 8;
@@ -35,7 +35,7 @@ public class DataUtils {
         }
         if (num >= 2048 ) num -= 4096;
         return num;
-    }*/
+    }
 
     public static int bytes2IntSigned(byte[] byteNum) {
         int num = 0;
@@ -47,7 +47,7 @@ public class DataUtils {
         return num;
     }
 
-/*    public static int bytes2IntSigned(byte[] byteNum) {
+    public static int bytes2IntSignedMagXY(byte[] byteNum) {
         int num = 0;
         for (int ix = 0; ix < byteNum.length; ++ix) {
             num <<= 8;
@@ -55,9 +55,9 @@ public class DataUtils {
         }
         if (num >= 4096 ) num -= 8192;
         return num;
-    }*/
+    }
 
-/*    public static int bytes2IntSigned(byte[] byteNum) {
+    public static int bytes2IntSignedMagZ(byte[] byteNum) {
         int num = 0;
         for (int ix = 0; ix < byteNum.length; ++ix) {
             num <<= 8;
@@ -65,7 +65,7 @@ public class DataUtils {
         }
         if (num >= 8912 ) num -= 16384;
         return num;
-    }*/
+    }
 
     public static byte int2OneByte(int num) {
         return (byte) (num & 0x000000ff);
