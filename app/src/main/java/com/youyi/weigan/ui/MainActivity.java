@@ -51,6 +51,7 @@ import com.youyi.weigan.adapter.DeviceListAdapter;
 import com.youyi.weigan.beans.DeviceStatusBean;
 import com.youyi.weigan.beans.SensorFreq;
 import com.youyi.weigan.beans.UserBean;
+import com.youyi.weigan.eventbean.Comm2Activity;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.Comm2WriteService;
@@ -118,9 +119,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private SeekBar sb_ang;
     private SeekBar sb_mag;
     private SeekBar sb_pressure;
-
     private ControlDeviceImp controlDeviceImp;
-
     private Toast toast;
     private boolean isStarted;
     private Intent gattService;
@@ -132,8 +131,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     private AlertDialog devicelistDialog;
     private RecyclerView recyclerView;
     private int[] freqValues = new int[4];
-    private boolean getDataEnd;
-
+    private boolean getDataEnd , isConnected;
+    private boolean isScanning;// gatt是否正在搜索设备
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
         setActionBar();
 
-        setNavigationItemClickListener();
+        setNavigationItemClicked();
 
         initFragments();
 
@@ -219,7 +218,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 case R.id.navigation_clear_data:
                     nvg_del_cache = root1;
                     break;
-
                 //real这一组
                 case R.id.navigation_real_group:
                     //遍历real group 的item下的menu item。。。
@@ -251,7 +249,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                                         if (isChecked) {
                                             EventUtil.post(REAL_DATA_ON);
                                             EventUtil.post(new Comm2Frags("DATA_UP_ON", Comm2Frags.Type.FromActivity));
-
                                         } else {
                                             EventUtil.post(REAL_DATA_OFF);
                                             EventUtil.post(new Comm2Frags("DATA_UP_OFF", Comm2Frags.Type.FromActivity));
@@ -268,13 +265,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         MenuItem v = root1.getSubMenu().getItem(j);
                         switch (v.getItemId()) {
                             case R.id.navigation_sensor_freq:
-
                                 break;
                             case R.id.navigation_vib_low:
-
                                 break;
                             case R.id.navigation_vib_up:
-
                                 break;
                         }
                     }
@@ -378,17 +372,15 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     }
 
     //侧滑菜单item点击事件
-    private void setNavigationItemClickListener() {
+    private void setNavigationItemClicked() {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.navigation_conn:
-
                         String title = (String) (item.getTitle());
                         Log.d("MSL", "onNavigationItemSelected: conn");
                         requestMyPermissions();
-
                         if (title.equals("连接")) {
                             devicelistDialog = null;
                             if (ServiceUtils.isServiceWork(MainActivity.this, "com.youyi.weigan.service.GATTService")) {
@@ -409,11 +401,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         EventUtil.post(SEARCH_DEVICE_STATUE);
                         break;
                     case R.id.navigation_collect_data:
-
                         startWriteService();
-
                         EventUtil.post(new Comm2Frags("GET_DATA_START", Comm2Frags.Type.FromActivity));
-
                         EventUtil.post(Comm2GATT.TYPE.SEARCH_HIS);
                         break;
                     case R.id.navigation_upload_data:
@@ -421,7 +410,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         showMessageOKCancel(MainActivity.this, "未上传至服务器的缓共有？" + size + " ,是否现在上传？", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
                                 EventUtil.post(Comm2WriteService.UpLoadCache);
                             }
                         });
@@ -430,7 +418,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         showMessageOKCancel(MainActivity.this, "确定要清空蓝牙设备里量测好的数据吗？（会丢失部分数据） 请确认已经接受完所有数据！！", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
                                 EventUtil.post(Comm2GATT.TYPE.CLEAR_FLASH);
                             }
                         });
@@ -442,13 +429,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                             public void onClick(DialogInterface dialog, int which) {
                                 boolean d = FileUtils.deleteCache("weigan");
                                 if (d) controlDeviceImp.showToast("已删");
-
                             }
                         });
                         break;
                     case R.id.navigation_realTime_heartRate:
                         sw_heartRate_real.setChecked(!sw_heartRate_real.isChecked());
-
                         break;
                     case R.id.navigation_realData:
                         sw_data_real.setChecked(!sw_data_real.isChecked());
@@ -458,12 +443,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         showDialogForSeekBar(MainActivity.this);
                         break;
                     case R.id.navigation_vib_low:
-
                         break;
                     case R.id.navigation_vib_up:
-
                         break;
-
                 }
                 return false;
             }
@@ -605,8 +587,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                         EventUtil.post(REAL_DATA_ON);
                     else
                         EventUtil.post(REAL_DATA_OFF);
+                    isConnected = true ;
                 } else {
                     initAll();
+                    isConnected = false;
                 }
                 break;
         }
@@ -620,6 +604,14 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             freqValues[2] = (sensorFreq.getMagFreq() == 0 || sensorFreq.getMagFreq() > 100)? -1 : sensorFreq.getMagFreq();
             freqValues[3] = (sensorFreq.getPressureFreq() == 0 || sensorFreq.getPressureFreq()> 100)? -1 : sensorFreq.getPressureFreq();
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void deviceSerach(Comm2Activity comm2Activity){
+        isScanning = comm2Activity.isInScanning();
+        String str = isScanning ? "停止" : "扫描";
+        Log.i("MSL", "deviceSerach: " + str);
+        devicelistDialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setText(str);
     }
 
 /**_______________________________________↑↑↑↑__EventBus__↑↑↑↑__________________________________________________________*/
@@ -888,6 +880,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     }
 
     private void showDeviceChooseDialog(Activity activity) {
+        if (isConnected) return;
         if (devicelistDialog != null) return;
         devicelistDialog = new AlertDialog.Builder(activity)
                 .setTitle("扫描到的蓝牙设备")
@@ -901,6 +894,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             @Override
             public void onDismiss(DialogInterface dialog) {
                 devicelistDialog = null;
+                btDeviceList.clear();
             }
         });
 
@@ -910,13 +904,13 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             public void onClick(View v) {
                 if (btnPositive.getText().equals("扫描")) {
                     btnPositive.setText("停止");
-                    Log.i("MSL", "onClick: " + EventBus.getDefault().isRegistered(this));
-                    EventUtil.register(btnPositive.getContext());
+                    EventBus.getDefault().post(Comm2GATT.TYPE.START_SCAN);
+                    EventUtil.post("扫描开始");
                     EventUtil.post(Comm2GATT.TYPE.START_SCAN);
-
                 } else if (btnPositive.getText().equals("停止")) {
-                    Log.i("MSL", "onClick: " + EventBus.getDefault().isRegistered(this));
                     btnPositive.setText("扫描");
+                    EventUtil.post(Comm2GATT.TYPE.STOP_SCAN);
+                    EventUtil.post("停止扫描");
                     EventUtil.post(Comm2GATT.TYPE.STOP_SCAN);
                 }
             }

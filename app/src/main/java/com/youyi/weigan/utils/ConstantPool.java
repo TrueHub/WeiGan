@@ -92,7 +92,7 @@ public class ConstantPool {
     public static final String debugWifiMac = "04:bd:70:da:1b:c0";
     public static final String debugWifiMac2 = "04:bd:70:da:1b:d0";
 
-    public static final String URL_DEBUG_LAN = "http://192.168.0.141:8080/";
+    public static final String URL_DEBUG_LAN = "http://192.168.0.169:8080/";
     public static final String URL_DEBUG_WLAN = "http://116.236.215.26:8000/";
 
 

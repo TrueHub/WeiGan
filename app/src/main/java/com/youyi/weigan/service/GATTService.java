@@ -28,6 +28,7 @@ import com.youyi.weigan.beans.Mag;
 import com.youyi.weigan.beans.Pressure;
 import com.youyi.weigan.beans.Pulse;
 import com.youyi.weigan.beans.SensorFreq;
+import com.youyi.weigan.eventbean.Comm2Activity;
 import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.EventNotification;
 import com.youyi.weigan.eventbean.Event_BleDevice;
@@ -40,6 +41,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
+
 import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_HEART_RATE_HIS;
 import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_ANGV;
 import static com.youyi.weigan.utils.ConstantPool.INSTRUCT_SEARCH_GRAV_HIS;
@@ -106,6 +108,7 @@ public class GATTService extends Service {
 
     private void searchDevice() {
         Log.i("MSL", "searchDevice: method running");
+        EventUtil.post(new Comm2Activity(true));
 
         //打开蓝牙
         if (!mBluetoothAdapter.isEnabled()) {
@@ -133,11 +136,7 @@ public class GATTService extends Service {
                 if (mScanning) {
                     Log.d("MSL", "Stop Scan， Time Out");
                     mScanning = false;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        mBluetoothScanner.stopScan(mScanCallBack_lollipop);
-                    } else {
-                        mBluetoothAdapter.stopLeScan(mScanCallBack_jelly);
-                    }
+                    stopScan();
                 }
             }
         }, 1000 * 10);
@@ -173,6 +172,7 @@ public class GATTService extends Service {
             mBluetoothScanner.stopScan(mScanCallBack_lollipop);
         } else
             mBluetoothAdapter.stopLeScan(mScanCallBack_jelly);
+        EventUtil.post(new Comm2Activity(false));
     }
 
     private void connect() {
@@ -188,7 +188,7 @@ public class GATTService extends Service {
     private class BLEGATTCallBack extends BluetoothGattCallback {
 
         @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState)                                                                                                                                           {
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
             mGatt = gatt;
             if (status == 0) {
@@ -204,6 +204,7 @@ public class GATTService extends Service {
                 //设备断开
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
                 Log.i("MSL", "Disconnected from GATT server");
+                EventUtil.post(new Comm2Activity(true));
                 mGatt.disconnect();
                 stopSelf();
             }
@@ -235,8 +236,6 @@ public class GATTService extends Service {
                                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                                 gatt.writeDescriptor(descriptor);
                             }
-//                            descriptorList.get(0).setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-//                            gatt.writeDescriptor(descriptorList.get(0));
                         }
                         if (characteristic.getUuid().equals(ConstantPool.UUID_WRITE)) {
                             vibrationChar = characteristic;
@@ -305,6 +304,18 @@ public class GATTService extends Service {
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void btnClick(Comm2GATT.TYPE type) {
+        switch (type) {
+            case START_SCAN:
+                Log.i("MSL", "gatt btnClick: start scan");
+                if (!mScanning)
+                    searchDevice();
+                break;
+            case STOP_SCAN:
+                Log.i("MSL", "gatt btnClick: stop scan");
+                if (mScanning)
+                    stopScan();
+                break;
+        }
         if (vibrationChar == null) return;
         switch (type) {
             case SEARCH_DEVICE_STATUE:
@@ -326,14 +337,6 @@ public class GATTService extends Service {
             case SEARCH_HIS:
                 commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_HIS, vibrationChar);
                 break;
-            case START_SCAN:
-                Log.i("MSL", "gatt btnClick: start scan");
-                searchDevice();
-                break;
-            case STOP_SCAN:
-                Log.i("MSL", "gatt btnClick: stop scan");
-                stopScan();
-                break;
             case STOP_GATT_SERVICE:
                 EventUtil.post("断开GATT连接");
                 EventUtil.post(new EventNotification(DEVICE_ID, false));
@@ -346,7 +349,7 @@ public class GATTService extends Service {
                 EventUtil.post(new EventNotification("HIS_DATA", true));
                 break;
             case SEARCH_SENSOR:
-                commandPool.addCommand(CommandPool.Type.write , ConstantPool.SEARCH_SENSOR_FREQ , vibrationChar);
+                commandPool.addCommand(CommandPool.Type.write, ConstantPool.SEARCH_SENSOR_FREQ, vibrationChar);
                 break;
         }
     }
@@ -357,6 +360,7 @@ public class GATTService extends Service {
         mTarget = event_bleDevice.getDevice();
         DEVICE_ID = mTarget.getName();
         connect();
+        stopScan();
     }
 
     /**
@@ -429,13 +433,13 @@ public class GATTService extends Service {
                 datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
                 mGravA.setTime(timeInt);
-            } else{
+            } else {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-                mGravA.setVelX(DataUtils.bytes2IntSignedGrav(new byte[]{datas[0], datas[1]}));
-                mGravA.setVelY(DataUtils.bytes2IntSignedGrav(new byte[]{datas[2], datas[3]}));
-                mGravA.setVelZ(DataUtils.bytes2IntSignedGrav(new byte[]{datas[4], datas[5]}));
+            mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+            mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+            mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
 
             EventUtil.post(mGravA);
         } else if (data[2] == INSTRUCT_SEARCH_ANGV) {
@@ -467,9 +471,9 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            mag.setStrengthX(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[0], datas[1]}));
-            mag.setStrengthY(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[2], datas[3]}));
-            mag.setStrengthZ(DataUtils.bytes2IntSignedMagZ(new byte[]{datas[4], datas[5]}));
+            mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
+            mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
+            mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             EventUtil.post(mag);
         } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {
             Pressure pressure = new Pressure();
@@ -479,7 +483,7 @@ public class GATTService extends Service {
                 datas = new byte[length - 6];
                 System.arraycopy(data, 7, datas, 0, datas.length);
                 pressure.setTime(timeInt);
-            }else {
+            } else {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }

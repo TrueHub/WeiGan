@@ -4,26 +4,6 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context=".ui.MainActivity"
     >
-    <item android:title="定位服务"
-          android:id="@+id/navigation_aMap"
-        >
-        <menu>
-
-            <item android:title="开关"
-                  android:id="@+id/navigation_location_switch"
-                  app:actionLayout="@layout/switch_item"/>
-            <item android:title="GPS"
-                  android:visible="false"
-                  android:id="@+id/navigation_gps_location"
-                  app:actionLayout="@layout/switch_item"
-                />
-            <item android:title="net"
-                  android:visible="false"
-                  android:id="@+id/navigation_net_location"
-                  app:actionLayout="@layout/switch_item"
-                />
-        </menu>
-    </item>
     <item android:title="@string/connect"
         android:id="@+id/navigation_conn"
         android:icon="@drawable/ic_bluetooth_connected_green_24dp"

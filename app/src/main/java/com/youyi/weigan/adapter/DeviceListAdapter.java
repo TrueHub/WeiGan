@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.youyi.weigan.R;
+import com.youyi.weigan.eventbean.Comm2GATT;
 import com.youyi.weigan.eventbean.Event_BleDevice;
 import com.youyi.weigan.utils.EventUtil;
 
@@ -42,7 +43,6 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Lo
             @Override
             public void onClick(View v) {
                 EventUtil.post(new Event_BleDevice(list.get(position) , Event_BleDevice.From.Activity));
-
             }
         });
     }

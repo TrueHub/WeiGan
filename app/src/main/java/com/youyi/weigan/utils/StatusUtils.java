@@ -1,11 +1,7 @@
 package com.youyi.weigan.utils;
 
-import android.util.Log;
-
 import com.youyi.weigan.beans.AngV;
 import com.youyi.weigan.beans.GravA;
-import com.youyi.weigan.beans.Mag;
-import com.youyi.weigan.beans.Pressure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +10,8 @@ import static com.youyi.weigan.utils.MathUtils.getAVG;
 import static com.youyi.weigan.utils.MathUtils.getVariance;
 import static com.youyi.weigan.utils.StatusUtils.Status.Bike;
 import static com.youyi.weigan.utils.StatusUtils.Status.DownStairs;
-import static com.youyi.weigan.utils.StatusUtils.Status.Elevator;
-import static com.youyi.weigan.utils.StatusUtils.Status.Normal;
 import static com.youyi.weigan.utils.StatusUtils.Status.Run;
 import static com.youyi.weigan.utils.StatusUtils.Status.Static;
-import static com.youyi.weigan.utils.StatusUtils.Status.Stairs;
 import static com.youyi.weigan.utils.StatusUtils.Status.UpStairs;
 import static com.youyi.weigan.utils.StatusUtils.Status.Walk;
 
@@ -28,18 +21,12 @@ import static com.youyi.weigan.utils.StatusUtils.Status.Walk;
 
 public class StatusUtils {
     public enum Status {
-        Normal,     //..
         Walk,       //步行
         Run,        //跑步
         Bike,       //自行车
-        Escalator,  //自动扶梯
         UpStairs,   //上楼梯
         DownStairs, //下楼梯
-        Elevator,  //电梯
-        Stairs,     //楼梯
-        Static,        //静止
-        Lie,        //躺下
-        Leg_Crossed //跷腿
+        Static        //静止
     }
 
     public static Status getStatus(List<GravA> gravAList, List<AngV> angVList) {
@@ -77,22 +64,9 @@ public class StatusUtils {
         }
 
         angV_norm = MathUtils.getNorm(a0);
+        angv_stdnorm = getVariance(angV_norm);
 
         //第一次判断 ， AngV的每组数据的模的方差
-
-        grav_norm = MathUtils.getNorm(g0);
-
-        angv_stdnorm = getVariance(angV_norm);
-        angv_meannorm = getAVG(angV_norm);
-        graV_meanY = getAVG(grav_yNums);
-        grav_stdY = getVariance(grav_yNums);
-        grav_stdnorm = getVariance(grav_norm);
-
-        Log.i("MSL", "angv_stdnorm: " + angv_stdnorm + " \n angv_meannorm:"
-                + angv_meannorm + " \n graV_meanY:" + graV_meanY + "\n grav_stdY:"
-                + grav_stdY +"\n grav_stdnorm" + grav_stdnorm
-        );
-
 
         if (angv_stdnorm >= 735) {
             graV_meanY = getAVG(grav_yNums);
@@ -139,7 +113,6 @@ public class StatusUtils {
                     return UpStairs;
                 }
             }
-
         } else {
             angv_meannorm = getAVG(angV_norm);
             if (angv_meannorm < 212)
@@ -149,10 +122,12 @@ public class StatusUtils {
         }
     }
 
-
-    /**
+/*
+    */
+/**
      * 判断骑车、走路、跑步
-     */
+     *//*
+
     public static Status getMasterStateByAng(ArrayList<AngV> angVList) {
         //只考虑x轴的情况
         int a, b;
@@ -211,6 +186,7 @@ public class StatusUtils {
             return Elevator;
         return null;
     }
+*/
 
 
 }

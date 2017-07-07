@@ -15,7 +15,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -95,10 +94,10 @@ public class ContentFragment extends Fragment implements LocationSource,
     private boolean getDataEnd;//接收完数据，将小于100的list也存储和上传
     private UserBean userBean;
 
-    private final int WALK = 0;
-    private final int RUN = 1;
-    private final int BIKE = 2;
-    private final int STATIC = 3;
+    private final int STATIC = 0;
+    private final int WALK = 1;
+    private final int RUN = 2;
+    private final int BIKE = 3;
     private final int UpStairs = 4;
     private final int DownStairs = 5;
     private final int Elevator = 6;
@@ -115,6 +114,10 @@ public class ContentFragment extends Fragment implements LocationSource,
     private AMapLocationClient mLocationClient;
     private AMapLocationClientOption mLocationOption;
     private GeocodeSearch geocoderSearch;
+    private int lastState;
+
+    final String[] stateStr = new String[]{"静止","步行","跑步","自行车","上楼梯","下楼梯"};
+
 
     public ContentFragment() {
         // Required empty public constructor
@@ -203,17 +206,16 @@ public class ContentFragment extends Fragment implements LocationSource,
         card_heartRate = (CardView) view.findViewById(R.id.card_heartRate);
 
         imgWheelView.setChecked(0);
+        Bitmap centerBmp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_stand);
         final Bitmap[] imgs = new Bitmap[]{
+                BitmapFactory.decodeResource(getResources(), R.drawable.ic_stand),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_walk),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_run),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_bike),
-                BitmapFactory.decodeResource(getResources(), R.drawable.ic_stand),
                 BitmapFactory.decodeResource(getResources(), R.drawable.up_stairs),
                 BitmapFactory.decodeResource(getResources(), R.drawable.down_stairs),
 //                BitmapFactory.decodeResource(getResources(), R.drawable.elevator)
-
         };
-        Bitmap centerBmp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_stand);
         imgWheelView.setImgs(imgs);
         imgWheelView.setCenterImg(centerBmp);
         lv_gravA = (ListView) view.findViewById(R.id.lv_gravA);
@@ -328,32 +330,32 @@ public class ContentFragment extends Fragment implements LocationSource,
 
     private void getStatus() {
         StatusUtils.Status status = StatusUtils.getStatus(gravAList, angVList);
+        int index = -1;
         switch (status) {
             case Static:
-                imgWheelView.setChecked(STATIC);
-                tv_status.setText("静止");
+                index = STATIC;
                 break;
             case Walk:
-                imgWheelView.setChecked(WALK);
-                tv_status.setText("步行");
+                index = WALK;
                 break;
             case Run:
-                imgWheelView.setChecked(RUN);
-                tv_status.setText("跑步");
+                index = RUN;
                 break;
             case Bike:
-                imgWheelView.setChecked(BIKE);
-                tv_status.setText("自行车");
+                index = BIKE;
                 break;
             case UpStairs:
-                imgWheelView.setChecked(UpStairs);
-                tv_status.setText("上楼梯");
+                index = UpStairs;
                 break;
             case DownStairs:
-                imgWheelView.setChecked(DownStairs);
-                tv_status.setText("下楼梯");
+                index = DownStairs;
                 break;
         }
+        if (index == lastState){
+            imgWheelView.setChecked(index);
+            tv_status.setText(stateStr[index]);
+        }
+        lastState = index;
     }
 
 
@@ -522,7 +524,6 @@ public class ContentFragment extends Fragment implements LocationSource,
             aMap.getUiSettings().setLogoPosition(AMapOptions.LOGO_POSITION_BOTTOM_LEFT);
             //隐藏logo
             aMap.getUiSettings().setLogoBottomMargin(-50);
-
         }
     }
 
