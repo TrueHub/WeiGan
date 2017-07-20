@@ -125,7 +125,6 @@ public class DataUtils {
         return hs;
     }
 
-
     public static int byteArrayToInt(byte[] bytes) {
         int value= 0;
         //由高位到低位
@@ -135,7 +134,6 @@ public class DataUtils {
         }
         return value;
     }
-
 
     public static int byte2Int(byte[] byteNum) {
         short s = 0;
@@ -148,9 +146,9 @@ public class DataUtils {
 
     public static void main(String[] args) {
 
-        byte[] b = new byte[]{(byte)0x03, (byte)0xfe};
+        /*byte[] b = new byte[]{(byte)0x03, (byte)0xfe};
         System.out.println(bytes2IntSigned(b));
-        System.out.println(byte2Int(b));
+        System.out.println(byte2Int(b));*/
 
         /*long time = System.currentTimeMillis();
         System.out.println(time);

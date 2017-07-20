@@ -2,6 +2,7 @@ package com.youyi.weigan.beans;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.widget.Toast;
 
 import java.io.Serializable;
 
@@ -60,7 +61,6 @@ public class Mag implements Parcelable , Serializable{
     public int getStrengthX() {
         return strengthX;
     }
-
     public void setStrengthX(int strengthX) {
         this.strengthX = strengthX;
     }

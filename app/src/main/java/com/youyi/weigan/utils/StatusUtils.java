@@ -26,7 +26,7 @@ public class StatusUtils {
         Bike,       //自行车
         UpStairs,   //上楼梯
         DownStairs, //下楼梯
-        Static        //静止
+        Static      //静止
     }
 
     public static Status getStatus(List<GravA> gravAList, List<AngV> angVList) {

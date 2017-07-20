@@ -94,6 +94,4 @@ public class ConstantPool {
 
     public static final String URL_DEBUG_LAN = "http://192.168.0.169:8080/";
     public static final String URL_DEBUG_WLAN = "http://116.236.215.26:8000/";
-
-
 }

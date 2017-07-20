@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -46,6 +47,7 @@ import com.youyi.weigan.beans.UserBean;
 import com.youyi.weigan.eventbean.Comm2Frags;
 import com.youyi.weigan.utils.DateUtils;
 import com.youyi.weigan.utils.EventUtil;
+import com.youyi.weigan.utils.MathUtils;
 import com.youyi.weigan.utils.ScreenShot;
 import com.youyi.weigan.utils.StatusUtils;
 import com.youyi.weigan.view.ImgWheelView;
@@ -109,15 +111,13 @@ public class ContentFragment extends Fragment implements LocationSource,
 
     private TextureMapView map_view;
     private AMap aMap = null;
-
     private OnLocationChangedListener mListener;
     private AMapLocationClient mLocationClient;
     private AMapLocationClientOption mLocationOption;
     private GeocodeSearch geocoderSearch;
     private int lastState;
 
-    final String[] stateStr = new String[]{"静止","步行","跑步","自行车","上楼梯","下楼梯"};
-
+    final String[] stateStr = new String[]{"静止", "步行", "跑步", "自行车", "上楼梯", "下楼梯"};
 
     public ContentFragment() {
         // Required empty public constructor
@@ -213,8 +213,7 @@ public class ContentFragment extends Fragment implements LocationSource,
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_run),
                 BitmapFactory.decodeResource(getResources(), R.drawable.ic_bike),
                 BitmapFactory.decodeResource(getResources(), R.drawable.up_stairs),
-                BitmapFactory.decodeResource(getResources(), R.drawable.down_stairs),
-//                BitmapFactory.decodeResource(getResources(), R.drawable.elevator)
+                BitmapFactory.decodeResource(getResources(), R.drawable.down_stairs)
         };
         imgWheelView.setImgs(imgs);
         imgWheelView.setCenterImg(centerBmp);
@@ -265,7 +264,6 @@ public class ContentFragment extends Fragment implements LocationSource,
         }
 
         if (pulseArrayList.size() == LIST_SIZE || getDataEnd) {
-
             ArrayList<Pulse> list = new ArrayList<>();
             list.addAll(pulseArrayList);
             userBean.getPulseArrayList().addAll(list);
@@ -280,7 +278,6 @@ public class ContentFragment extends Fragment implements LocationSource,
             tv_grav.setText("重力加速度:" + DateUtils.getDateToString(gravA.getTime() * 100));
             //心率历史
             gravAArrayList.add(gravA);
-
             if (gravAArrayList.size() == LIST_SIZE || getDataEnd) {
                 ArrayList<GravA> list = new ArrayList<>();
                 list.addAll(gravAArrayList);
@@ -328,6 +325,8 @@ public class ContentFragment extends Fragment implements LocationSource,
         }
     }
 
+    private ArrayList<Integer> statusPool = new ArrayList<>();
+
     private void getStatus() {
         StatusUtils.Status status = StatusUtils.getStatus(gravAList, angVList);
         int index = -1;
@@ -351,13 +350,20 @@ public class ContentFragment extends Fragment implements LocationSource,
                 index = DownStairs;
                 break;
         }
-        if (index == lastState){
-            imgWheelView.setChecked(index);
-            tv_status.setText(stateStr[index]);
+        statusPool.add(index);
+        if (statusPool.size() == 15) {
+            int si = MathUtils.getWeight(statusPool);
+            if (si == -1) {
+                imgWheelView.setChecked(lastState);
+                tv_status.setText(stateStr[lastState]);
+            } else {
+                imgWheelView.setChecked(si);
+                tv_status.setText(stateStr[si]);
+            }
+            lastState = si;
+            statusPool.clear();
         }
-        lastState = index;
     }
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public synchronized void getGATTCallback(Mag mag) {
@@ -405,13 +411,11 @@ public class ContentFragment extends Fragment implements LocationSource,
             pressureList.add(pressure);
             if (pressureList.size() > SIZE_2) {
                 pressureList.remove(0);
-
             }
             if (adapterPressure == null)
                 adapterPressure = new MyPressureDataAdapter(pressureList, this.getActivity().getApplicationContext());
             lv_pressure.setAdapter(adapterPressure);
             adapterPressure.notifyDataSetChanged();
-
         }
     }
 
@@ -455,7 +459,6 @@ public class ContentFragment extends Fragment implements LocationSource,
     /**
      * _______________________________________↑↑↑↑__EventBus__↑↑↑↑______________________________________________
      */
-
     private void initLocation() {
         if (aMap == null) {
             aMap = map_view.getMap();
@@ -467,8 +470,6 @@ public class ContentFragment extends Fragment implements LocationSource,
         // 设置定位的类型为定位模式，有定位、跟随或地图根据面向方向旋转几种
         aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);
         geocoderSearch = new GeocodeSearch(this.getActivity().getApplicationContext());
-
-
     }
 
     @Override
@@ -486,8 +487,6 @@ public class ContentFragment extends Fragment implements LocationSource,
     @Override
     public void onMyLocationChange(Location location) {
         LatLonPoint latLonPoint = new LatLonPoint(location.getLatitude(), location.getLongitude());
-
-//        Log.i("MSL", "onMyLocationChange: " + latLonPoint.getLatitude() + " , " + latLonPoint.getLongitude());
 
         geocoderSearch = new GeocodeSearch(this.getActivity().getApplicationContext());
         geocoderSearch.setOnGeocodeSearchListener(this);
@@ -509,6 +508,8 @@ public class ContentFragment extends Fragment implements LocationSource,
             mLocationClient.setLocationListener(this);
             //设置为高精度定位模式
             mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+            mLocationOption.setInterval(1000 * 5);
+
             //设置定位参数
             mLocationClient.setLocationOption(mLocationOption);
             // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
@@ -548,6 +549,5 @@ public class ContentFragment extends Fragment implements LocationSource,
 
     @Override
     public void onGeocodeSearched(GeocodeResult geocodeResult, int i) {
-
     }
 }

@@ -1,6 +1,9 @@
 package com.youyi.weigan.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by user on 2017/5/2.
@@ -85,9 +88,50 @@ public class MathUtils {
         return avg;
     }
 
+    public static int getWeight(ArrayList<Integer> list) {
+        int index = -1;
+        int max = 0;
+
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (int i : list) {
+            if (map.get(i) != null) {
+                map.put(i, map.get(i) + 1);
+            } else
+                map.put(i, 1);
+        }
+        Iterator<Map.Entry<Integer, Integer>> iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, Integer> entry = iterator.next();
+            max = Math.max(entry.getValue(), max);
+        }
+        if (max == 1)
+            return -1;
+        list.clear();
+        iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, Integer> entry = iterator.next();
+            if (entry.getValue() == max) {
+                index = entry.getKey();
+                list.add(index);
+            }
+        }
+        if (list.size() == 1)
+            return index;
+        else
+            return -1;
+    }
+
     public static void main(String[] args) {
-        System.out.println("方差为：" + getVariance(new double[]{50, 100, 100, 50, 60}));
-        System.out.println("方差为：" + getVariance(new double[]{73, 72, 75, 70, 70}));
+
+        ArrayList<Integer> list = new ArrayList<>();
+        list.add(2);
+        list.add(3);
+        list.add(2);
+        list.add(1);
+        list.add(5);
+        list.add(5);
+
+        System.out.println(getWeight(list));
     }
 
 }

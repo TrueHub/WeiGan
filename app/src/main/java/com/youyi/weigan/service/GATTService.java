@@ -86,15 +86,12 @@ public class GATTService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         return super.onStartCommand(intent, flags, startId);
-
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
         EventUtil.register(this);
         handler = new Handler();
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -109,14 +106,12 @@ public class GATTService extends Service {
     private void searchDevice() {
         Log.i("MSL", "searchDevice: method running");
         EventUtil.post(new Comm2Activity(true));
-
         //打开蓝牙
         if (!mBluetoothAdapter.isEnabled()) {
             mBluetoothAdapter.enable();
             return;
         }
         if (mGattCallback == null) mGattCallback = new BLEGATTCallBack();
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {//5.0以上
 //            if (mScanCallBack_lollipop == null)
             mScanCallBack_lollipop = new LeScanCallback_LOLLIPOP();
@@ -126,9 +121,7 @@ public class GATTService extends Service {
 //            if (mScanCallBack_lollipop == null)
             mScanCallBack_jelly = new LeScanCallback_JELLY_BEAN();
             mBluetoothAdapter.startLeScan(mScanCallBack_jelly);
-
         }
-
         mScanning = true;
         handler.postDelayed(new Runnable() {
             @Override
@@ -141,7 +134,6 @@ public class GATTService extends Service {
             }
         }, 1000 * 10);
     }
-
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private class LeScanCallback_LOLLIPOP extends ScanCallback {
         @Override
@@ -151,22 +143,16 @@ public class GATTService extends Service {
                 return;
             }
             Log.i("MSL", "onScanResult: 扫描到设备：" + result.getDevice().getName() + "\n" + result.getDevice().getAddress());
-
             EventUtil.post(new Event_BleDevice(result.getDevice(), Event_BleDevice.From.Gatt));
-
         }
     }
-
     private class LeScanCallback_JELLY_BEAN implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             Log.i("MSL", "onScanResult: JELLY_BEAN 扫描到设备：" + device.getName() + "\n" + device.getAddress());
-
             EventUtil.post(new Event_BleDevice(device, Event_BleDevice.From.Gatt));
-
         }
     }
-
     private void stopScan() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mBluetoothScanner.stopScan(mScanCallBack_lollipop);
@@ -174,7 +160,6 @@ public class GATTService extends Service {
             mBluetoothAdapter.stopLeScan(mScanCallBack_jelly);
         EventUtil.post(new Comm2Activity(false));
     }
-
     private void connect() {
         if (!isConnected) {
             mTarget.connectGatt(GATTService.this, false, mGattCallback);
@@ -184,9 +169,7 @@ public class GATTService extends Service {
             EventUtil.post("目标设备已配对");
         }
     }
-
     private class BLEGATTCallBack extends BluetoothGattCallback {
-
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
@@ -209,7 +192,6 @@ public class GATTService extends Service {
                 stopSelf();
             }
         }
-
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             List<BluetoothGattService> serviceList;
@@ -245,18 +227,15 @@ public class GATTService extends Service {
                 }
             }
         }
-
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             commandPool.onCommandCallbackComplete();
         }
-
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
 //            Log.d("MSL", "onCharacteristicWrite: " + status);
             commandPool.onCommandCallbackComplete();
         }
-
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             if (characteristic.getUuid().equals(ConstantPool.UUID_NOTIFY)) {
@@ -266,39 +245,33 @@ public class GATTService extends Service {
                 readData(data);
             }
         }
-
         @Override
         public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
 
             Log.d("MSL", "onDescriptorRead: " + DataUtils.bytes2hex(descriptor.getValue()));
             commandPool.onCommandCallbackComplete();
         }
-
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.d("MSL", "onDescriptorWrite: ");
             commandPool.onCommandCallbackComplete();
         }
-
         @Override
         public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
             commandPool.onCommandCallbackComplete();
             Log.d("MSL", "onReliableWriteCompleted: ");
         }
-
         @Override
         public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
             commandPool.onCommandCallbackComplete();
             Log.d("MSL", "onReadRemoteRssi: ");
         }
-
         @Override
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
             commandPool.onCommandCallbackComplete();
             Log.d("MSL", "onMtuChanged: ");
         }
     }
-
     /**
      * ________↓↓_______MainActivity的btn控制这里_____________↓↓↓↓_eventBus_↓↓↓↓↓___________________________________________________
      */
@@ -353,7 +326,6 @@ public class GATTService extends Service {
                 break;
         }
     }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void connectedDevice(Event_BleDevice event_bleDevice) {
         if (event_bleDevice.getFrom() == Event_BleDevice.From.Gatt) return;
@@ -362,7 +334,6 @@ public class GATTService extends Service {
         connect();
         stopScan();
     }
-
     /**
      * 设置传感器的频率
      */
@@ -377,11 +348,9 @@ public class GATTService extends Service {
             commandPool.addCommand(CommandPool.Type.write, freq, vibrationChar);
         }
     }
-
     /**
      * _________________________________________________________________________________________________________
      */
-
     public void readData(byte[] data) throws NullPointerException {
         int length = DataUtils.byte2Int(data[1]);//设备返回的数据长度
         if (data[2] == INSTRUCT_SET_TIME) {//返回：设定时间成功
@@ -389,7 +358,7 @@ public class GATTService extends Service {
                 EventUtil.post("SET_TIME_SUCCESS!");
             }
         } else if (data[2] == INSTRUCT_SET_SENSOR_FREQ && data[1] == (byte) 0x06) {
-            //返回各传感器的采样频率
+//返回各传感器的采样频率
             SensorFreq sensorFreq = new SensorFreq();
             sensorFreq.setGravFreq(DataUtils.Byte2Int(data[3]));
             sensorFreq.setAngFreq(DataUtils.Byte2Int(data[4]));
@@ -398,10 +367,10 @@ public class GATTService extends Service {
             sensorFreq.setType(SensorFreq.Type.comm2Activity);
             Log.d("MSL", "readData: freq");
             EventUtil.post(sensorFreq);
-
         } else if (data[2] == INSTRUCT_SEARCH_PULSE && data[1] == (byte) 0x02) {
             EventUtil.post("开关实时心率成功");
         } else if (data[2] == INSTRUCT_SEARCH_TIME) {
+//返回设备状态
             int timeInt = getTimeInt(data);
             byte[] datas = new byte[length - 6];
             System.arraycopy(data, 7, datas, 0, datas.length);
@@ -416,6 +385,7 @@ public class GATTService extends Service {
                 writeTime();
             }
         } else if (data[2] == INSTRUCT_HEART_RATE_HIS) {
+//返回历史心率
             int timeInt = getTimeInt(data);
             byte[] datas = new byte[length - 6];
             System.arraycopy(data, 7, datas, 0, datas.length);
@@ -426,6 +396,7 @@ public class GATTService extends Service {
             pulse.setTrustLevel(DataUtils.byte2Int(datas[1]));
             EventUtil.post(pulse);
         } else if (data[2] == INSTRUCT_SEARCH_GRAV_HIS) {
+//返回重力加速度
             GravA mGravA = new GravA();
             byte[] datas;
             if (data[1] == 0x0C) {
@@ -437,12 +408,13 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            mGravA.setVelX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-            mGravA.setVelY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-            mGravA.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            mGravA.setVelX(DataUtils.bytes2IntSignedGrav(new byte[]{datas[0], datas[1]}));
+            mGravA.setVelY(DataUtils.bytes2IntSignedGrav(new byte[]{datas[2], datas[3]}));
+            mGravA.setVelZ(DataUtils.bytes2IntSignedGrav(new byte[]{datas[4], datas[5]}));
 
             EventUtil.post(mGravA);
         } else if (data[2] == INSTRUCT_SEARCH_ANGV) {
+//返回角速度
             AngV angV = new AngV();
             byte[] datas;
             if (data[1] == 0x0C) {
@@ -459,6 +431,7 @@ public class GATTService extends Service {
             angV.setVelZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
             EventUtil.post(angV);
         } else if (data[2] == INSTRUCT_SEARCH_MAG) {
+//返回磁场强度
             Mag mag = new Mag();
             byte[] datas;
             if (data[1] == 0x0C) {
@@ -471,11 +444,12 @@ public class GATTService extends Service {
                 datas = new byte[length - 2];
                 System.arraycopy(data, 3, datas, 0, datas.length);
             }
-            mag.setStrengthX(DataUtils.bytes2IntSigned(new byte[]{datas[0], datas[1]}));
-            mag.setStrengthY(DataUtils.bytes2IntSigned(new byte[]{datas[2], datas[3]}));
-            mag.setStrengthZ(DataUtils.bytes2IntSigned(new byte[]{datas[4], datas[5]}));
+            mag.setStrengthX(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[0], datas[1]}));
+            mag.setStrengthY(DataUtils.bytes2IntSignedMagXY(new byte[]{datas[2], datas[3]}));
+            mag.setStrengthZ(DataUtils.bytes2IntSignedMagZ(new byte[]{datas[4], datas[5]}));
             EventUtil.post(mag);
         } else if (data[2] == INSTRUCT_SEARCH_PRESSURE) {
+//返回气压强度
             Pressure pressure = new Pressure();
             byte[] datas;
             if (data[1] == 0x0A) {
@@ -491,16 +465,13 @@ public class GATTService extends Service {
             EventUtil.post(pressure);
         }
     }
-
     private int getTimeInt(byte[] data) {
         byte[] timeBytes = new byte[4];//时间数组
         System.arraycopy(data, 3, timeBytes, 0, timeBytes.length);
         return DataUtils.bytes2IntUnsigned(timeBytes);//这里的timeInt是100ms级别的
     }
-
     private void writeTime() {
         byte[] currentTimeBytes = DataUtils.int2Bytes(currentTimeSec());//需要发送的时间戳的长度
-//        Log.d("MSL", "writeTime: " + currentTimeBytes.length + "," + currentTimeBytes[0] + "," + currentTimeBytes[1] + "," + currentTimeBytes[2] + "," + currentTimeBytes[3]);
         byte[] setTimeBytes = new byte[8];//整条指令的长度
         setTimeBytes[0] = ConstantPool.HEAD;
         setTimeBytes[1] = (byte) 0x06;
@@ -509,11 +480,8 @@ public class GATTService extends Service {
         setTimeBytes[setTimeBytes.length - 1] = ConstantPool.END;
         commandPool.addCommand(CommandPool.Type.write, setTimeBytes, vibrationChar);
     }
-
     private boolean needSetTime(int time) {
         int current = (int) (System.currentTimeMillis() / 10);
-//        Log.d("MSL", "needSetTime: " + current + "," + time);
         return Math.abs(time - current) >= 1;
     }
-
 }
