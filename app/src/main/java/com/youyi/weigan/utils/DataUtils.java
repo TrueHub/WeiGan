@@ -1,10 +1,13 @@
 package com.youyi.weigan.utils;
 
+
 /**
  * Created by user on 2017/4/7.
  */
 
 public class DataUtils {
+    private static byte[] tmpBytes;
+
     public static byte[] int2Bytes(int num) {
         byte[] byteNum = new byte[4];
         for (int ix = 0; ix < 4; ++ix) {
@@ -14,8 +17,23 @@ public class DataUtils {
         return byteNum;
     }
 
+    public static byte[] hexStrToByteArray(String str) {
+        if (str == null) {
+            return null;
+        }
+        if (str.length() == 0) {
+            return new byte[0];
+        }
+        byte[] byteArray = new byte[str.length() / 2];
+        for (int i = 0; i < byteArray.length; i++) {
+            String subStr = str.substring(2 * i, 2 * i + 2);
+            byteArray[i] = ((byte) Integer.parseInt(subStr, 16));
+        }
+        return byteArray;
+    }
+
     public static int byte2Int(byte byteNum) {
-        return byteNum;
+        return byteNum & 0xff;
     }
 
     public static int bytes2IntUnsigned(byte[] byteNum) {
@@ -33,7 +51,7 @@ public class DataUtils {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }
-        if (num >= 2048 ) num -= 4096;
+        if (num >= 2048) num -= 4096;
         return num;
     }
 
@@ -53,7 +71,7 @@ public class DataUtils {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }
-        if (num >= 4096 ) num -= 8192;
+        if (num >= 4096) num -= 8192;
         return num;
     }
 
@@ -63,7 +81,7 @@ public class DataUtils {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }
-        if (num >= 8912 ) num -= 16384;
+        if (num >= 8912) num -= 16384;
         return num;
     }
 
@@ -72,7 +90,7 @@ public class DataUtils {
     }
 
     public static int Byte2Int(byte byteNum) {
-        return byteNum > 0 ? byteNum : (128 + (128 + byteNum));
+        return byteNum & 0xff;
     }
 
     public static byte[] long2Bytes(long num) {
@@ -100,12 +118,13 @@ public class DataUtils {
         }
         return result;
     }
+
     /**
      * 将byte[]转化成16进制的String命令
      */
     public static String bytes2hex(byte[] b) {
         // String Buffer can be used instead
-        String hs = "";
+        String hs = "0x";
         String stmp = "";
 
         for (int n = 0; n < b.length; n++) {
@@ -118,19 +137,43 @@ public class DataUtils {
             }
 
             if (n < b.length - 1) {
-                hs = hs + "";
+                hs = hs + ",0x";
             }
         }
+        return hs;
+    }
 
+    /**
+     * 将byte[]转化成格式的String命令
+     *
+     * @param b
+     * @return
+     */
+    public static String bytesFormat2Mac(byte[] b) {
+        // String Buffer can be used instead
+        String hs = "";
+        String stmp = "";
+
+        for (int n = 0; n < b.length; n++) {
+            stmp = (Integer.toHexString(b[n] & 0XFF));
+            if (stmp.length() == 1) {
+                hs = hs + "0" + stmp;
+            } else {
+                hs = hs + stmp;
+            }
+            if (n < b.length - 1) {
+                hs = hs + ":";
+            }
+        }
         return hs;
     }
 
     public static int byteArrayToInt(byte[] bytes) {
-        int value= 0;
+        int value = 0;
         //由高位到低位
         for (int i = 0; i < bytes.length; i++) {
-            int shift= (4 - 1 - i) * 8;
-            value +=(bytes[i] & 0x000000FF) << shift;//往高位游
+            int shift = (bytes.length - 1 - i) * 8;
+            value += (bytes[i] & 0x000000FF) << shift;//往高位游
         }
         return value;
     }
@@ -144,60 +187,37 @@ public class DataUtils {
         return s;
     }
 
+    public static char getCrc(char[] f, int len) {
+        char check_sum = 0;
+        for (int i = 0; i < len; i++) {
+            check_sum += f[i];
+        }
+        check_sum = (char) (byte2Int((byte) 0xff) - check_sum + byte2Int((byte) 0x01));
+        return check_sum;
+    }
+
+    public static byte CalculateCRC(byte _cmd, byte[] _data) {
+        int iTemp = _cmd;
+        for (int i = 0; i < _data.length; i++) {
+            iTemp += _data[i];
+        }
+        byte bTemp = Integer.valueOf(iTemp).byteValue();
+        iTemp = 256 - bTemp;
+        bTemp = Integer.valueOf(iTemp).byteValue();
+        return bTemp;
+    }
+
+    public static int toInt(byte[] b) {
+        int intValue = 0;
+        for (int i = 0; i < b.length; i++) {
+            intValue += (b[i] & 0xFF) << (8 * (3 - i));
+        }
+        return intValue;
+    }
     public static void main(String[] args) {
 
-        /*byte[] b = new byte[]{(byte)0x03, (byte)0xfe};
-        System.out.println(bytes2IntSigned(b));
-        System.out.println(byte2Int(b));*/
-
-        /*long time = System.currentTimeMillis();
-        System.out.println(time);
-        byte[] long2Bytes1 = long2Bytes(time);
-        for (int ix = 0; ix < long2Bytes1.length; ++ix) {
-            System.out.print(long2Bytes1[ix] + " ");
-        }
-
-        int num = 129;
-        System.out.println("测试的int值为:" + num);
-
-        byte[] int2bytes = DataUtils.int2Bytes(num);
-        System.out.printf("int转成bytes: ");
-        for (int i = 0; i < 4; ++i) {
-            System.out.print(int2bytes[i] + " ");
-        }
-        System.out.println();
-
-        int bytes2int = DataUtils.bytes2IntUnsigned(int2bytes);
-        System.out.println("bytes转行成int: " + bytes2int);
-
-        byte int2OneByte = DataUtils.int2OneByte(num);
-        System.out.println("int转行成one byte: " + int2OneByte);
-        System.out.println("int转行成one byte: " + (byte)0x127);
-
-        int oneByte2Int = DataUtils.Byte2Int(int2OneByte);
-        System.out.println("one byte转行成int: " + oneByte2Int);
-        System.out.println("one byte转行成int 2 : " + byte2Int(int2OneByte));
-        System.out.println();
-
-        long longNum = 286331153;
-        System.out.println("测试的long值为：" + longNum);
-
-        byte[] long2Bytes = DataUtils.long2Bytes(longNum);
-        System.out.printf("long转行成bytes: ");
-        for (int ix = 0; ix < long2Bytes.length; ++ix) {
-            System.out.print(long2Bytes[ix] + " ");
-        }
-        System.out.println();
-
-
-        byte[] newByte = new byte[] {4,6,23,6};
-        long bytes2Long = DataUtils.bytes2Long(newByte);
-        System.out.println("bytes转行成long: " + bytes2Long);
-
-        byte byteNum = (byte)0x45;
-        System.out.print("byte为："+byteNum);
-        int byte2Int = byte2Int(byteNum);
-        System.out.println("byte转行成int: " + byte2Int);*/
+        byte[] a = {(byte)0x32,(byte)0x32};
+        System.out.println(byteArrayToInt(a));
     }
 
 }
